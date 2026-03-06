@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Muhaajir – Password Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="https://i.postimg.cc/Kvg50f5n/IMG-20250812-164118-putih.png">
+<style>
+:root{
+  --midnight:#020617;
+  --slate:#94A3B8;
+  --blue:#3B82F6;
+  --blue-10:rgba(59,130,246,0.10);
+  --blue-18:rgba(59,130,246,0.18);
+  --blue-30:rgba(59,130,246,0.30);
+  --blue-50:rgba(59,130,246,0.50);
+  --surface:rgba(2,6,23,0.94);
+  --surface2:rgba(5,12,35,0.97);
+  --text:#f0f4ff;
+  --muted:var(--slate);
+  --border:rgba(59,130,246,0.14);
+  --border-hover:rgba(59,130,246,0.35);
+  --glow:0 0 30px rgba(59,130,246,0.18);
+  --glow-strong:0 0 40px rgba(59,130,246,0.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--midnight);
+  font-family:'Syne',sans-serif;
+  min-height:100vh;
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ── BACKGROUND LAYERS ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(59,130,246,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,.025) 1px,transparent 1px);
+  background-size:44px 44px;
+  animation:gridDrift 30s linear infinite;
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%, rgba(59,130,246,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 90%, rgba(148,163,184,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 60% 40%, rgba(59,130,246,.04) 0%, transparent 50%);
+  pointer-events:none;z-index:0;
+  animation:bgPulse 12s ease-in-out infinite alternate;
+}
+@keyframes gridDrift{to{background-position:0 44px;}}
+@keyframes bgPulse{from{opacity:.6}to{opacity:1}}
+
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:1.5rem 1rem 5rem;}
+
+/* ═══════════════════════════
+   HEADER
+═══════════════════════════ */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.25rem;margin-bottom:1.25rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:22px;
+  backdrop-filter:blur(24px);
+  box-shadow:var(--glow);
+  gap:.75rem;
+}
+
+.brand{display:flex;align-items:center;gap:.75rem;min-width:0;}
+
+.logo{
+  width:42px;height:42px;border-radius:13px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
+  border:1px solid var(--blue-18);
+  display:flex;align-items:center;justify-content:center;
+  animation:logoPulse 4s ease-in-out infinite;
+}
+.logo svg{width:22px;height:22px;stroke:var(--blue);stroke-width:1.8;fill:none;}
+@keyframes logoPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}
+  50%{box-shadow:0 0 0 6px rgba(59,130,246,.08)}
+}
+
+.brand-text{min-width:0;}
+.title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+h1{
+  font-size:1.3rem;font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.025em;
+  white-space:nowrap;
+  text-shadow:0 0 30px rgba(59,130,246,.4);
+}
+.sub{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:1px;}
+
+/* Globe button */
+.globe-btn{
+  display:flex;align-items:center;gap:.3rem;
+  background:var(--blue-10);
+  border:1px solid var(--blue-18);
+  border-radius:10px;
+  padding:.32rem .6rem;
+  cursor:pointer;
+  transition:all .2s;
+  flex-shrink:0;
+}
+.globe-btn:hover{
+  background:var(--blue-18);
+  border-color:var(--blue-30);
+  box-shadow:0 0 12px rgba(59,130,246,.15);
+  transform:translateY(-1px);
+}
+.globe-btn svg{width:14px;height:14px;stroke:var(--blue);fill:none;stroke-width:2;}
+.globe-btn .lang-lbl{
+  font-size:.65rem;font-weight:700;
+  color:var(--blue);letter-spacing:.05em;
+  font-family:'Space Mono',monospace;
+}
+
+/* Header stats */
+.hstats{display:flex;gap:.5rem;flex-shrink:0;}
+.hstat{
+  text-align:center;
+  background:rgba(59,130,246,.04);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:.3rem .7rem;
+}
+.hnum{font-size:1rem;font-weight:700;color:var(--blue);font-family:'Space Mono',monospace;}
+.hlbl{font-size:.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+/* ═══════════════════════════
+   LANGUAGE MODAL
+═══════════════════════════ */
+.lang-overlay{
+  position:fixed;inset:0;
+  z-index:10000;
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.lang-overlay.open{opacity:1;pointer-events:auto;}
+
+.lang-backdrop{
+  position:absolute;inset:0;
+  background:rgba(2,6,23,.75);
+  backdrop-filter:blur(16px);
+}
+
+.lang-panel{
+  position:relative;z-index:1;
+  background:var(--surface2);
+  border:1px solid var(--blue-30);
+  border-radius:28px;
+  padding:1.75rem;
+  width:100%;max-width:500px;
+  max-height:85vh;overflow-y:auto;
+  box-shadow:0 30px 60px -10px rgba(0,0,0,.6), var(--glow-strong);
+  transform:translateY(12px) scale(.97);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.lang-overlay.open .lang-panel{transform:translateY(0) scale(1);}
+
+.lang-panel::-webkit-scrollbar{width:3px;}
+.lang-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+.lang-modal-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1.25rem;
+  padding-bottom:1rem;
+  border-bottom:1px solid var(--border);
+}
+
+.lang-modal-title{
+  display:flex;align-items:center;gap:.6rem;
+}
+.lang-modal-title svg{width:18px;height:18px;stroke:var(--blue);fill:none;stroke-width:2;}
+.lang-modal-title h2{
+  font-size:1.15rem;font-weight:700;
+  color:var(--text);
+  letter-spacing:-.02em;
+}
+
+.lang-close{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--blue-10);border:1px solid var(--blue-18);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;
+  color:var(--muted);flex-shrink:0;
+}
+.lang-close:hover{background:var(--blue-18);color:var(--blue);transform:rotate(90deg);}
+.lang-close svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;}
+
+.lang-search-wrap{position:relative;margin-bottom:1rem;}
+.lang-search{
+  width:100%;
+  background:rgba(0,0,0,.3);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:.55rem .9rem .55rem 2.5rem;
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  font-size:.82rem;
+  outline:none;
+  transition:.2s;
+}
+.lang-search:focus{border-color:var(--blue-30);}
+.lang-search::placeholder{color:var(--muted);}
+.lang-search-ico{
+  position:absolute;left:.75rem;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2;pointer-events:none;
+}
+
+.lang-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:.55rem;
+}
+
+.lang-item{
+  display:flex;align-items:center;gap:.7rem;
+  padding:.75rem .9rem;
+  border-radius:14px;
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:rgba(59,130,246,.02);
+  transition:all .2s;
+  position:relative;
+  overflow:hidden;
+}
+.lang-item::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--blue-10),transparent);
+  opacity:0;transition:opacity .2s;
+}
+.lang-item:hover{border-color:var(--blue-30);transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.1);}
+.lang-item:hover::before{opacity:1;}
+.lang-item.active{
+  border-color:var(--blue);
+  background:rgba(59,130,246,.08);
+  box-shadow:0 0 0 1px rgba(59,130,246,.2),0 4px 20px rgba(59,130,246,.15);
+}
+.lang-item.active::before{opacity:1;}
+.lang-item.hidden{display:none;}
+
+.lang-flag{font-size:1.6rem;flex-shrink:0;line-height:1;}
+.lang-info{flex:1;min-width:0;}
+.lang-name{font-weight:600;font-size:.82rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lang-code-badge{
+  font-size:.58rem;font-weight:700;font-family:'Space Mono',monospace;
+  color:var(--blue);
+  background:var(--blue-10);
+  border:1px solid var(--blue-18);
+  border-radius:6px;padding:.1rem .35rem;
+  flex-shrink:0;
+  letter-spacing:.05em;
+}
+.lang-item.active .lang-code-badge{background:var(--blue-18);border-color:var(--blue-30);}
+
+.active-check{
+  position:absolute;top:.5rem;right:.5rem;
+  width:16px;height:16px;
+  background:var(--blue);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;
+  box-shadow:0 0 8px rgba(59,130,246,.5);
+}
+.lang-item.active .active-check{opacity:1;}
+.active-check svg{width:9px;height:9px;stroke:#fff;stroke-width:3;fill:none;}
+
+/* ═══════════════════════════
+   CARDS
+═══════════════════════════ */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:22px;
+  backdrop-filter:blur(24px);
+  margin-bottom:1.25rem;
+  overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,.2);
+  transition:border-color .2s;
+}
+.card:hover{border-color:rgba(59,130,246,.2);}
+
+.card-hd{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.85rem 1.35rem .7rem;
+  border-bottom:1px solid var(--border);
+}
+.card-hd svg{width:14px;height:14px;stroke:var(--blue);stroke-width:2;fill:none;flex-shrink:0;}
+.card-ht{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);}
+.card-bd{padding:1.2rem 1.35rem;}
+
+/* ═══════════════════════════
+   TABS
+═══════════════════════════ */
+.tabs{
+  display:flex;gap:.3rem;
+  padding:.35rem;
+  background:rgba(0,0,0,.35);
+  border-radius:14px;
+  margin-bottom:1.15rem;
+}
+.tab{
+  flex:1;padding:.48rem .25rem;
+  border:none;background:transparent;
+  border-radius:10px;
+  color:var(--muted);
+  font-family:'Syne',sans-serif;
+  font-size:.68rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.tab.on{
+  background:linear-gradient(135deg,var(--blue-10),rgba(59,130,246,.06));
+  color:var(--blue);
+  border:1px solid var(--blue-18);
+  box-shadow:0 2px 8px rgba(59,130,246,.08);
+}
+.tp{display:none;}.tp.on{display:block;}
+
+/* ═══════════════════════════
+   MODE BUTTONS
+═══════════════════════════ */
+.mode-row{
+  display:flex;gap:.3rem;
+  background:rgba(0,0,0,.3);
+  border-radius:13px;padding:.3rem;
+  margin-bottom:1.1rem;
+}
+.mbtn{
+  flex:1;padding:.42rem .2rem;
+  border:none;border-radius:9px;
+  font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;
+  cursor:pointer;background:transparent;color:var(--muted);
+  transition:all .2s;text-transform:uppercase;letter-spacing:.04em;
+}
+.mbtn.on{
+  background:var(--blue-10);color:var(--blue);
+  border:1px solid var(--blue-18);
+}
+
+/* ═══════════════════════════
+   SLIDER
+═══════════════════════════ */
+.slrow{display:flex;align-items:center;gap:.9rem;margin-bottom:.9rem;}
+input[type=range]{
+  flex:1;height:4px;border-radius:10px;-webkit-appearance:none;
+  background:linear-gradient(90deg,var(--blue) var(--pct,50%),rgba(59,130,246,.1) var(--pct,50%));
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;
+  background:var(--blue);border-radius:50%;
+  box-shadow:0 0 10px rgba(59,130,246,.6);
+  border:2px solid var(--midnight);cursor:pointer;
+}
+.lbadge{
+  font-family:'Space Mono',monospace;font-size:.9rem;font-weight:700;
+  color:var(--blue);
+  background:var(--blue-10);border:1px solid var(--blue-18);
+  padding:.2rem .85rem;border-radius:30px;min-width:50px;text-align:center;
+}
+
+/* ═══════════════════════════
+   PILLS & CHIPS
+═══════════════════════════ */
+.cgrid{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.9rem;}
+.pill{
+  display:flex;align-items:center;gap:.4rem;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:30px;padding:.38rem .85rem;
+  cursor:pointer;font-size:.76rem;font-weight:600;
+  transition:all .2s;user-select:none;
+}
+.pill:hover{border-color:var(--blue-18);background:var(--blue-10);}
+.pill input{display:none;}
+.pill.on{background:var(--blue-10);border-color:var(--blue-18);color:var(--blue);}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:.2s;}
+.pill.on .pdot{background:var(--blue);box-shadow:0 0 6px rgba(59,130,246,.5);}
+
+.xopts{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.1rem;}
+.chip{
+  display:flex;align-items:center;gap:.3rem;
+  padding:.28rem .7rem;
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:20px;font-size:.7rem;
+  cursor:pointer;background:rgba(255,255,255,.02);
+  transition:.2s;user-select:none;
+}
+.chip:hover{border-color:var(--blue-18);}
+.chip.on{border-color:var(--blue-18);background:var(--blue-10);color:var(--blue);}
+.chip input{display:none;}
+
+/* ═══════════════════════════
+   PASSPHRASE / PIN CONTROLS
+═══════════════════════════ */
+.pprow{display:flex;align-items:center;gap:.75rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.sepinp{
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:10px;padding:.36rem .65rem;
+  color:var(--text);font-family:'Space Mono',monospace;font-size:.85rem;
+  width:65px;outline:none;
+}
+.sepinp:focus{border-color:var(--blue-30);}
+
+/* ═══════════════════════════
+   GENERATE BUTTON
+═══════════════════════════ */
+.gbtn{
+  width:100%;padding:.92rem;
+  border-radius:16px;
+  font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:.1em;
+  border:1.5px solid var(--blue);
+  background:transparent;color:var(--blue);
+  cursor:pointer;transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.gbtn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent,var(--blue-10),transparent);
+  transform:translateX(-100%);transition:transform .6s;
+}
+.gbtn:hover::before{transform:translateX(100%);}
+.gbtn:hover{
+  background:var(--blue);color:var(--midnight);
+  box-shadow:0 0 30px rgba(59,130,246,.4),0 0 60px rgba(59,130,246,.15);
+}
+.gbtn:active{transform:scale(.98);}
+
+/* ═══════════════════════════
+   PASSWORD DISPLAY
+═══════════════════════════ */
+.pwbox{
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:.85rem 1rem .85rem 1.15rem;
+  display:flex;align-items:center;gap:.7rem;
+  flex-wrap:wrap;margin-top:1rem;
+  transition:border-color .2s;
+}
+.pwbox:hover{border-color:rgba(59,130,246,.22);}
+
+.pwt{
+  flex:1;font-family:'Space Mono',monospace;font-size:1.05rem;
+  color:#fff;word-break:break-all;line-height:1.55;
+  min-width:140px;text-shadow:0 0 20px rgba(59,130,246,.2);
+}
+.pwt.flash{animation:pwIn .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pwIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.pwt.masked{filter:blur(5px);cursor:pointer;}
+.pwt.masked:hover{filter:blur(0);}
+
+.actrow{
+  display:flex;gap:.22rem;
+  background:rgba(255,255,255,.02);padding:.22rem;
+  border-radius:40px;border:1px solid rgba(148,163,184,.08);
+}
+.bic{
+  width:36px;height:36px;border-radius:28px;
+  border:none;background:transparent;
+  color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;position:relative;flex-shrink:0;
+}
+.bic svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.8;fill:none;}
+.bic:hover{background:var(--blue);color:var(--midnight);box-shadow:0 0 12px rgba(59,130,246,.4);}
+.bic .tt{
+  position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+  background:#0a1422;border:1px solid var(--border);
+  color:var(--text);font-size:.58rem;padding:.18rem .45rem;
+  border-radius:6px;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .15s;
+  font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:.04em;
+}
+.bic:hover .tt{opacity:1;}
+
+/* ═══════════════════════════
+   STRENGTH METER
+═══════════════════════════ */
+.strrow{display:flex;align-items:center;gap:.75rem;margin-top:.85rem;flex-wrap:wrap;}
+.ering{width:56px;height:56px;flex-shrink:0;position:relative;}
+.ering svg{transform:rotate(-90deg);}
+.rbg{fill:none;stroke:rgba(59,130,246,.08);stroke-width:4;}
+.rfl{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1),stroke .3s;}
+.ectr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ebits{font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;}
+.elbl{font-size:.4rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+.sbars{display:flex;gap:3px;flex:1;min-width:90px;}
+.sb{flex:1;height:4px;border-radius:10px;background:rgba(59,130,246,.08);transition:background .3s,box-shadow .3s;}
+.sb.lit{box-shadow:0 0 6px currentColor;}
+.slbl{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.crack{font-size:.62rem;color:var(--muted);font-family:'Space Mono',monospace;}
+
+/* ═══════════════════════════
+   HISTORY
+═══════════════════════════ */
+.hlist{
+  display:flex;flex-direction:column;gap:.4rem;
+  max-height:255px;overflow-y:auto;padding-right:2px;
+}
+.hlist::-webkit-scrollbar{width:3px;}
+.hlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+.hi{
+  display:flex;align-items:center;gap:.65rem;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(148,163,184,.07);
+  border-radius:12px;padding:.5rem .7rem;
+  transition:.15s;cursor:pointer;
+}
+.hi:hover{border-color:var(--blue-18);background:var(--blue-10);}
+.hpw{font-family:'Space Mono',monospace;font-size:.76rem;flex:1;word-break:break-all;color:var(--text);}
+.hmeta{display:flex;flex-direction:column;align-items:flex-end;gap:.12rem;flex-shrink:0;}
+.htime{font-size:.58rem;color:var(--muted);}
+.hdot{width:8px;height:8px;border-radius:50%;}
+.hlen{font-size:.56rem;color:var(--muted);font-family:'Space Mono',monospace;}
+
+/* ═══════════════════════════
+   ANALYZE
+═══════════════════════════ */
+.ainp{
+  width:100%;
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:12px;padding:.68rem 1rem;
+  color:var(--text);font-family:'Space Mono',monospace;font-size:.88rem;
+  outline:none;transition:.2s;
+}
+.ainp:focus{border-color:var(--blue-30);box-shadow:0 0 0 3px rgba(59,130,246,.06);}
+.ainp::placeholder{color:var(--muted);}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.85rem;}
+.astat{
+  background:rgba(0,0,0,.2);border:1px solid var(--border);
+  border-radius:12px;padding:.65rem .95rem;
+}
+.avl{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--blue);}
+.all{font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:.08rem;}
+.cbk{margin-top:.85rem;display:flex;flex-direction:column;gap:.4rem;}
+.cbrow{display:flex;align-items:center;gap:.7rem;}
+.cblbl{font-size:.68rem;width:82px;flex-shrink:0;color:var(--muted);}
+.cbbg{flex:1;height:4px;background:rgba(59,130,246,.08);border-radius:10px;overflow:hidden;}
+.cbb{height:100%;border-radius:10px;transition:width .4s;}
+.cbcnt{font-family:'Space Mono',monospace;font-size:.6rem;width:20px;text-align:right;color:var(--muted);}
+
+/* ═══════════════════════════
+   VAULT
+═══════════════════════════ */
+.vheader{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;}
+.vbtn-group{display:flex;gap:.4rem;}
+.vbtn-outline{
+  background:transparent;border:1px solid var(--blue-18);
+  border-radius:30px;padding:.36rem .9rem;
+  color:var(--muted);font-size:.68rem;font-weight:600;
+  cursor:pointer;transition:.2s;
+  display:flex;align-items:center;gap:.3rem;
+}
+.vbtn-outline:hover{background:var(--blue-10);border-color:var(--blue-30);color:var(--blue);}
+.vform{display:flex;flex-direction:column;gap:.6rem;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.vi{
+  width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:10px;padding:.5rem .8rem;
+  color:var(--text);font-family:'Syne',sans-serif;font-size:.8rem;
+  outline:none;transition:.2s;
+}
+.vi:focus{border-color:var(--blue-30);}
+.vi::placeholder{color:var(--muted);}
+.vbtn{
+  padding:.55rem 1rem;border-radius:10px;
+  border:1px solid var(--blue-18);background:var(--blue-10);
+  color:var(--blue);font-family:'Syne',sans-serif;
+  font-size:.76rem;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap;
+}
+.vbtn:hover{background:var(--blue);color:var(--midnight);}
+.ventries{display:flex;flex-direction:column;gap:.4rem;margin-top:.85rem;}
+.vitem{
+  display:flex;align-items:center;gap:.65rem;
+  background:rgba(0,0,0,.2);border:1px solid var(--border);
+  border-radius:13px;padding:.55rem .85rem;transition:.15s;
+}
+.vitem:hover{border-color:var(--blue-18);}
+.vico{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--blue-10);border:1px solid var(--blue-18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;flex-shrink:0;
+}
+.vinf{flex:1;min-width:0;}
+.vsite{font-weight:700;font-size:.82rem;}
+.vuser{font-size:.66rem;color:var(--muted);}
+.vpw{
+  font-family:'Space Mono',monospace;font-size:.72rem;
+  color:var(--blue);filter:blur(4px);transition:.2s;cursor:pointer;
+}
+.vpw.unblur{filter:blur(0);}
+.vacts{display:flex;gap:.2rem;}
+.vab{
+  width:26px;height:26px;border-radius:7px;
+  border:none;background:rgba(255,255,255,.04);
+  color:var(--muted);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:.2s;
+}
+.vab svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;}
+.vab:hover{background:var(--blue);color:var(--midnight);}
+
+/* ═══════════════════════════
+   TIPS
+═══════════════════════════ */
+.tipitem{display:flex;gap:.85rem;padding:.8rem 0;border-bottom:1px solid var(--border);}
+.tipitem:last-child{border-bottom:none;}
+.tipico{font-size:1.3rem;flex-shrink:0;line-height:1.4;}
+.tiptit{font-weight:700;font-size:.83rem;margin-bottom:.18rem;}
+.tipbod{font-size:.74rem;color:var(--muted);line-height:1.55;}
+
+/* ═══════════════════════════
+   NOTIFICATION
+═══════════════════════════ */
+.notif{
+  position:fixed;top:1.2rem;right:1.2rem;z-index:9999;
+  background:rgba(5,12,35,.97);
+  border:1px solid var(--blue-18);
+  border-radius:14px;padding:.65rem 1rem;
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.8rem;font-weight:600;
+  transform:translateX(130%);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 8px 30px rgba(59,130,246,.12);
+  max-width:270px;
+  backdrop-filter:blur(20px);
+}
+.notif.show{transform:translateX(0);}
+.ndot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0;box-shadow:0 0 8px var(--blue);}
+
+/* ═══════════════════════════
+   EMPTY STATES
+═══════════════════════════ */
+.empty{
+  text-align:center;padding:1.75rem 1rem;
+  color:var(--muted);font-size:.8rem;
+  display:flex;flex-direction:column;align-items:center;gap:.45rem;
+}
+.empty svg{width:36px;height:36px;stroke:var(--muted);stroke-width:1.2;fill:none;opacity:.3;}
+
+/* ═══════════════════════════
+   SECTION LABELS
+═══════════════════════════ */
+.sec-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+
+/* ═══════════════════════════
+   RESPONSIVE
+═══════════════════════════ */
+@media(max-width:520px){
+  .hstats{display:none;}
+  h1{font-size:1.1rem;}
+  .lang-panel{padding:1.25rem;}
+  .lang-grid{grid-template-columns:1fr;}
+  .agrid{grid-template-columns:1fr;}
+  .frow{grid-template-columns:1fr;}
+  .title-row{gap:6px;}
+}
+
+/* RTL support */
+[dir="rtl"] .notif{right:auto;left:1.2rem;transform:translateX(-130%);}
+[dir="rtl"] .notif.show{transform:translateX(0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══════════ HEADER ══════════ -->
+<header>
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="brand-text">
+      <div class="title-row">
+        <h1>Muhaajir Vault</h1>
+        <button class="globe-btn" onclick="openLangModal()" aria-label="Change Language">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span class="lang-lbl" id="curLangCode">ID</span>
+        </button>
+      </div>
+      <div class="sub" id="hSub">Password Generator Pro</div>
+    </div>
+  </div>
+  <div class="hstats">
+    <div class="hstat">
+      <div class="hnum" id="statGen">0</div>
+      <div class="hlbl" id="lblGen">Dibuat</div>
+    </div>
+    <div class="hstat">
+      <div class="hnum" id="statSav">0</div>
+      <div class="hlbl" id="lblSav">Tersimpan</div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ LANGUAGE MODAL ══════════ -->
+<div class="lang-overlay" id="langOverlay" role="dialog" aria-modal="true">
+  <div class="lang-backdrop" onclick="closeLangModal()"></div>
+  <div class="lang-panel">
+    <div class="lang-modal-head">
+      <div class="lang-modal-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <h2 id="modalLangTitle">Pilih Bahasa</h2>
+      </div>
+      <button class="lang-close" onclick="closeLangModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="lang-search-wrap">
+      <svg class="lang-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="lang-search" id="langSearch" type="text" placeholder="Cari bahasa…" oninput="filterLangs(this.value)" autocomplete="off">
+    </div>
+
+    <div class="lang-grid" id="langGrid"></div>
+  </div>
+</div>
+
+<!-- ══════════ GENERATOR CARD ══════════ -->
+<div class="card">
+  <div class="card-hd">
+    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <span class="card-ht" id="cardHtGen">Generator</span>
+  </div>
+  <div class="card-bd">
+
+    <div class="mode-row">
+      <button class="mbtn on" id="mRandom"     onclick="setMode('random')">Acak</button>
+      <button class="mbtn"    id="mPronounce"  onclick="setMode('pronounce')">Diucap</button>
+      <button class="mbtn"    id="mPassphrase" onclick="setMode('passphrase')">Passphrase</button>
+      <button class="mbtn"    id="mPin"        onclick="setMode('pin')">PIN</button>
+    </div>
+
+    <!-- Random / Pronounce panel -->
+    <div id="panRandom">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem;">
+        <span class="sec-lbl" id="lblLength">Panjang</span>
+        <span class="lbadge" id="lenVal">24</span>
+      </div>
+      <div class="slrow"><input type="range" id="lenRange" min="4" max="128" value="24"></div>
+
+      <div class="sec-lbl" id="lblChars" style="margin-bottom:.5rem;">Karakter</div>
+      <div class="cgrid">
+        <label class="pill on" id="pU"><input type="checkbox" id="cU" checked><span class="pdot"></span>A–Z</label>
+        <label class="pill on" id="pL"><input type="checkbox" id="cL" checked><span class="pdot"></span>a–z</label>
+        <label class="pill on" id="pN"><input type="checkbox" id="cN" checked><span class="pdot"></span>0–9</label>
+        <label class="pill"    id="pS"><input type="checkbox" id="cS"><span class="pdot"></span>!@#$%</label>
+        <label class="pill"    id="pSp"><input type="checkbox" id="cSp"><span class="pdot"></span><span id="lblSpace">Spasi</span></label>
+      </div>
+      <div class="xopts">
+        <label class="chip" id="chipSim"><input type="checkbox" id="cSim"><span id="lblSim">Hindari O0l1</span></label>
+        <label class="chip" id="chipAmb"><input type="checkbox" id="cAmb"><span id="lblAmb">Hindari {}[]</span></label>
+        <label class="chip" id="chipMask"><input type="checkbox" id="cMask"><span id="lblMask">Sembunyikan</span></label>
+      </div>
+    </div>
+
+    <!-- Passphrase panel -->
+    <div id="panPP" style="display:none;">
+      <div class="pprow">
+        <span class="sec-lbl" id="lblWC">Jumlah kata</span>
+        <span class="lbadge" id="wcVal">5</span>
+        <input type="range" id="wcRange" min="3" max="12" value="5" style="flex:1;">
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <span style="font-size:.76rem;color:var(--muted);" id="lblSep">Pemisah:</span>
+        <input class="sepinp" id="sepInp" value="-" maxlength="5">
+        <label class="chip" id="chipPPN"><input type="checkbox" id="cPPN"><span id="lblPPN">+ Angka</span></label>
+        <label class="chip on" id="chipPPC"><input type="checkbox" id="cPPC" checked><span id="lblPPC">Kapital</span></label>
+      </div>
+    </div>
+
+    <!-- PIN panel -->
+    <div id="panPin" style="display:none;">
+      <div class="pprow">
+        <span class="sec-lbl" id="lblPinD">Digit PIN</span>
+        <span class="lbadge" id="pinVal">6</span>
+        <input type="range" id="pinRange" min="4" max="12" value="6" style="flex:1;">
+      </div>
+      <div class="xopts">
+        <label class="chip" id="chipNR"><input type="checkbox" id="cNR"><span id="lblNR">Tanpa ulang</span></label>
+        <label class="chip" id="chipNS"><input type="checkbox" id="cNS"><span id="lblNS">Tanpa urutan</span></label>
+      </div>
+    </div>
+
+    <button class="gbtn" id="genBtn">&#9889; <span id="btnGenTxt">Buat Password</span></button>
+
+    <div class="pwbox">
+      <div class="pwt" id="pwt">—</div>
+      <div class="actrow">
+        <button class="bic" id="btnCopy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="tt" id="ttCopy">Salin</span></button>
+        <button class="bic" id="btnRef"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15A9 9 0 1 1 5.64 5.64L1 10"/></svg><span class="tt" id="ttRef">Baru</span></button>
+        <button class="bic" id="btnSV"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span class="tt" id="ttSV">Simpan</span></button>
+        <button class="bic" id="btnDL"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="tt" id="ttDL">Unduh</span></button>
+        <button class="bic" id="btnSh"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span class="tt" id="ttSh">Bagikan</span></button>
+      </div>
+    </div>
+
+    <!-- Strength -->
+    <div class="strrow">
+      <div class="ering">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle class="rbg" cx="28" cy="28" r="23"/>
+          <circle class="rfl" id="rfl" cx="28" cy="28" r="23" stroke-dasharray="144.51" stroke-dashoffset="144.51" stroke="var(--blue)"/>
+        </svg>
+        <div class="ectr"><span class="ebits" id="ebits">0</span><span class="elbl">bits</span></div>
+      </div>
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.38rem;">
+          <span class="slbl" id="slbl" style="color:var(--muted);">—</span>
+          <span class="crack" id="crack"></span>
+        </div>
+        <div class="sbars">
+          <div class="sb"></div><div class="sb"></div><div class="sb"></div>
+          <div class="sb"></div><div class="sb"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ BOTTOM CARD: TABS ══════════ -->
+<div class="card">
+  <div class="card-bd">
+    <div class="tabs">
+      <button class="tab on" onclick="stab('hist')"  id="tabHist">Riwayat</button>
+      <button class="tab"    onclick="stab('ana')"   id="tabAna">Analisis</button>
+      <button class="tab"    onclick="stab('vault')" id="tabVault">Vault</button>
+      <button class="tab"    onclick="stab('tips')"  id="tabTips">Tips</button>
+    </div>
+
+    <!-- History -->
+    <div class="tp on" id="tp-hist">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;">
+        <span class="sec-lbl" id="lblClickUse">Klik untuk pakai</span>
+        <button onclick="clearHist()" id="btnClearH" style="font-size:.65rem;color:var(--muted);background:none;border:none;cursor:pointer;text-transform:uppercase;font-family:'Syne',sans-serif;letter-spacing:.04em;">Hapus semua</button>
+      </div>
+      <div class="hlist" id="hlist">
+        <div class="empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="emptyH">Belum ada riwayat</span></div>
+      </div>
+    </div>
+
+    <!-- Analyze -->
+    <div class="tp" id="tp-ana">
+      <input class="ainp" id="ainp" placeholder="Masukkan password untuk dianalisis…">
+      <div id="ares" style="display:none;">
+        <div class="agrid" id="agrid"></div>
+        <div class="cbk" id="cbk"></div>
+      </div>
+    </div>
+
+    <!-- Vault -->
+    <div class="tp" id="tp-vault">
+      <div class="vheader">
+        <span class="sec-lbl" id="lblVaultTitle">Vault</span>
+        <div class="vbtn-group">
+          <button class="vbtn-outline" onclick="exportCSV()" id="btnExportCSV">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV
+          </button>
+          <button class="vbtn-outline" onclick="clearVault()" id="btnClearV">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            Hapus
+          </button>
+        </div>
+      </div>
+      <div class="vform">
+        <div class="frow">
+          <input class="vi" id="vSite" placeholder="🌐 Website / Aplikasi">
+          <input class="vi" id="vUser" placeholder="👤 Username / Email">
+        </div>
+        <div style="display:flex;gap:.5rem;">
+          <input class="vi" id="vPw" style="flex:1;font-family:'Space Mono',monospace;" placeholder="🔑 Password">
+          <button class="vbtn" onclick="useCurPw()" id="btnUseCur">Pakai saat ini</button>
+        </div>
+        <button class="vbtn" onclick="saveVault()" id="btnSaveV" style="width:100%;padding:.65rem;">Simpan ke Vault</button>
+      </div>
+      <div class="ventries" id="ventries">
+        <div class="empty"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span id="emptyV">Vault kosong.</span></div>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="tp" id="tp-tips">
+      <div id="tiplist"></div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /.wrap -->
+
+<div class="notif" id="notif">
+  <div class="ndot" id="ndot"></div>
+  <span id="ntxt">OK</span>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── CRYPTO RANDOM ── */
+function cryptoRandom(min,max){
+  var range=max-min+1;
+  var bytes=new Uint32Array(1);
+  window.crypto.getRandomValues(bytes);
+  return min+Math.floor(bytes[0]/(0xffffffff+1)*range);
+}
+
+/* ── WORDLIST ── */
+var WL=['apple','brave','cloud','dance','eagle','flame','grace','happy','iron','jungle','king','light','moon','night','ocean','pearl','quick','river','stone','tiger','ultra','vivid','water','xenon','yellow','zebra','amber','blaze','crisp','delta','echo','fresh','globe','hero','input','jewel','karma','lemon','magic','noble','orbit','pixel','quest','radio','solar','tower','unity','valor','wheat','yacht','azure','bloom','chaos','dream','elite','focus','ghost','ideal','judge','knack','lunar','metro','nexus','omega','prime','quartz','realm','spark','track','vault','wisdom','yield','zeal','arch','bell','cave','dusk','ever','fawn','glow','hymn','isle','jade','keen','lace','mint','navy','oval','pine','rune','silk','thorn','vast','wren','zinc','alpha','boxer','crest','drift','ember','flint','grove','haven','ivory','jelly','kudos','lyric','mango','nerve','onyx','phase','ridge','storm','truce','verge'];
+
+/* ── TRANSLATIONS (13 languages) ── */
+var L10N={
+  ar:{flag:'🇸🇦',name:'العربية',code:'AR',
+    sub:'مولد كلمات المرور',gen:'تم الإنشاء',sav:'محفوظ',cardGen:'المولد',
+    mRandom:'عشوائي',mPronounce:'نطقي',mPP:'عبارة مرور',mPin:'PIN',
+    lblLength:'الطول',lblChars:'الأحرف',lblSpace:'مسافة',
+    lblSim:'تجنب O0l1',lblAmb:'تجنب {}[]',lblMask:'إخفاء',
+    lblWC:'عدد الكلمات',lblSep:'فاصل:',lblPPN:'+ رقم',lblPPC:'أحرف كبيرة',
+    lblPinD:'أرقام PIN',lblNR:'بدون تكرار',lblNS:'بدون تسلسل',
+    btnGen:'إنشاء كلمة مرور',
+    ttCopy:'نسخ',ttRef:'جديد',ttSV:'حفظ',ttDL:'تحميل',ttSh:'مشاركة',
+    tabH:'السجل',tabA:'تحليل',tabV:'الخزنة',tabT:'نصائح',
+    lblClickUse:'انقر للاستخدام',btnClearH:'حذف الكل',
+    emptyH:'لا يوجد سجل',emptyV:'الخزنة فارغة.',
+    ainpPH:'أدخل كلمة مرور للتحليل…',
+    aStr:'القوة',aEnt:'بت الإنتروبيا',aLen:'الطول',aUniq:'أحرف فريدة',aCrack:'وقت الاختراق المقدر',
+    cbUp:'أحرف كبيرة',cbLo:'أحرف صغيرة',cbNu:'أرقام',cbSy:'رموز',
+    vSitePH:'🌐 الموقع',vUserPH:'👤 اسم المستخدم',vPwPH:'🔑 كلمة المرور',
+    btnUseCur:'استخدم الحالية',btnSaveV:'حفظ في الخزنة',
+    sLabels:['ضعيف جداً','ضعيف','مقبول','قوي','قوي جداً'],
+    tLT1:'<1 ث',tSec:' ث',tMin:' د',tHr:' س',tDay:' أيام',tYr:' سنة',tKYr:' ألف سنة',tMYr:' مليون سنة',tInf:'إلى الأبد',
+    nCopied:'تم النسخ!',nDL:'تم التحميل!',nShared:'تم النسخ للمشاركة!',nSaved:'تم الحفظ!',nDel:'تم الحذف',nOpenV:'افتح تبويب الخزنة!',nFill:'أدخل الموقع وكلمة المرور!',nFail:'فشل النسخ',nSwitched:'تم تغيير اللغة إلى العربية',
+    langTitle:'اللغة / Language',
+    langSearch:'ابحث عن لغة…',
+    tips:[{e:'🔑',t:'استخدم كلمات مرور فريدة',b:'يجب أن يكون لكل حساب كلمة مرور مختلفة.'},{e:'📏',t:'16 حرفاً على الأقل',b:'كلمات المرور الأطول تزيد الأمان بشكل كبير.'},{e:'🔀',t:'اخلط أنواع الأحرف',b:'استخدم أحرفاً كبيرة وصغيرة وأرقاماً ورموزاً معاً.'},{e:'🗝',t:'عبارات المرور قوية',b:'"تفاحة-سماء-زرقاء-جيتار" أسهل في التذكر وأكثر أماناً.'},{e:'🚫',t:'تجنب المعلومات الشخصية',b:'لا تستخدم اسمك أو تاريخ ميلادك في كلمات المرور.'},{e:'🔒',t:'فعّل المصادقة الثنائية',b:'تضيف طبقة أمان إضافية حتى لو تسربت كلمة مرورك.'},{e:'🗃',t:'استخدم مدير كلمات مرور',b:'يساعدك على تخزين وإدارة آلاف كلمات المرور بأمان.'},{e:'🔄',t:'غيّر كلمات المرور بانتظام',b:'غيّرها كل 6-12 شهراً لحساباتك المهمة.'}]},
+  de:{flag:'🇩🇪',name:'Deutsch',code:'DE',
+    sub:'Passwort-Generator Pro',gen:'Erstellt',sav:'Gespeichert',cardGen:'Generator',
+    mRandom:'Zufällig',mPronounce:'Aussprechbar',mPP:'Passphrase',mPin:'PIN',
+    lblLength:'Länge',lblChars:'Zeichen',lblSpace:'Leerzeichen',
+    lblSim:'O0l1 meiden',lblAmb:'{}[] meiden',lblMask:'Verbergen',
+    lblWC:'Wortanzahl',lblSep:'Trennzeichen:',lblPPN:'+ Zahl',lblPPC:'Großschreiben',
+    lblPinD:'PIN-Stellen',lblNR:'Keine Wdh.',lblNS:'Keine Seq.',
+    btnGen:'Passwort erstellen',
+    ttCopy:'Kopieren',ttRef:'Neu',ttSV:'Speichern',ttDL:'Herunterladen',ttSh:'Teilen',
+    tabH:'Verlauf',tabA:'Analyse',tabV:'Tresor',tabT:'Tipps',
+    lblClickUse:'Klicken zum Verwenden',btnClearH:'Alles löschen',
+    emptyH:'Kein Verlauf',emptyV:'Tresor ist leer.',
+    ainpPH:'Passwort zur Analyse eingeben…',
+    aStr:'Stärke',aEnt:'Entropie-Bits',aLen:'Länge',aUniq:'Einz. Zeichen',aCrack:'Geschätzte Crackzeit',
+    cbUp:'Großbuchstaben',cbLo:'Kleinbuchstaben',cbNu:'Zahlen',cbSy:'Symbole',
+    vSitePH:'🌐 Webseite / App',vUserPH:'👤 Benutzername',vPwPH:'🔑 Passwort',
+    btnUseCur:'Aktuelles verwenden',btnSaveV:'Im Tresor speichern',
+    sLabels:['Sehr Schwach','Schwach','Mittel','Stark','Sehr Stark'],
+    tLT1:'<1s',tSec:'s',tMin:'m',tHr:'h',tDay:'T',tYr:'J',tKYr:'T Jahre',tMYr:'M Jahre',tInf:'Für immer',
+    nCopied:'Kopiert!',nDL:'Heruntergeladen!',nShared:'Zum Teilen kopiert!',nSaved:'Im Tresor gespeichert!',nDel:'Eintrag gelöscht',nOpenV:'Tresor-Tab öffnen!',nFill:'Webseite und Passwort ausfüllen!',nFail:'Kopieren fehlgeschlagen',nSwitched:'Sprache auf Deutsch geändert',
+    langTitle:'Sprache / Language',langSearch:'Sprache suchen…',
+    tips:[{e:'🔑',t:'Einzigartige Passwörter',b:'Jedes Konto braucht ein eigenes Passwort.'},{e:'📏',t:'Mindestens 16 Zeichen',b:'Längere Passwörter erhöhen die Sicherheit erheblich.'},{e:'🔀',t:'Zeichentypen mischen',b:'Groß- und Kleinbuchstaben, Zahlen und Symbole kombinieren.'},{e:'🗝',t:'Passphrasen sind stark',b:'"Apfel-Himmel-Blau-Gitarre" ist sicherer als "P@ssw0rd!".'},{e:'🚫',t:'Persönliche Infos vermeiden',b:'Name, Geburtstag etc. nicht im Passwort verwenden.'},{e:'🔒',t:'2FA aktivieren',b:'Zwei-Faktor-Authentifizierung bietet extra Schutz.'},{e:'🗃',t:'Passwort-Manager nutzen',b:'Hilft, tausende einzigartige Passwörter sicher zu verwalten.'},{e:'🔄',t:'Regelmäßig wechseln',b:'Besonders für wichtige Konten alle 6–12 Monate.'}]},
+  en:{flag:'🇬🇧',name:'English',code:'EN',
+    sub:'Password Generator Pro',gen:'Generated',sav:'Saved',cardGen:'Generator',
+    mRandom:'Random',mPronounce:'Pronounce',mPP:'Passphrase',mPin:'PIN',
+    lblLength:'Length',lblChars:'Characters',lblSpace:'Space',
+    lblSim:'Avoid O0l1',lblAmb:'Avoid {}[]',lblMask:'Hide',
+    lblWC:'Word count',lblSep:'Separator:',lblPPN:'+ Number',lblPPC:'Capitalize',
+    lblPinD:'PIN Digits',lblNR:'No repeat',lblNS:'No sequence',
+    btnGen:'Generate Password',
+    ttCopy:'Copy',ttRef:'New',ttSV:'Save',ttDL:'Download',ttSh:'Share',
+    tabH:'History',tabA:'Analyze',tabV:'Vault',tabT:'Tips',
+    lblClickUse:'Click to use',btnClearH:'Clear all',
+    emptyH:'No history yet',emptyV:'Vault is empty.',
+    ainpPH:'Enter a password to analyze…',
+    aStr:'Strength',aEnt:'Entropy Bits',aLen:'Length',aUniq:'Unique Chars',aCrack:'Est. crack time (10B/s)',
+    cbUp:'Uppercase',cbLo:'Lowercase',cbNu:'Numbers',cbSy:'Symbols',
+    vSitePH:'🌐 Website / App',vUserPH:'👤 Username / Email',vPwPH:'🔑 Password',
+    btnUseCur:'Use current',btnSaveV:'Save to Vault',
+    sLabels:['Very Weak','Weak','Fair','Strong','Very Strong'],
+    tLT1:'<1s',tSec:'s',tMin:'m',tHr:'h',tDay:'d',tYr:'y',tKYr:'k yr',tMYr:'M yr',tInf:'Forever',
+    nCopied:'Copied!',nDL:'Downloaded!',nShared:'Copied to share!',nSaved:'Saved to vault!',nDel:'Entry deleted',nOpenV:'Open Vault tab!',nFill:'Fill site & password!',nFail:'Copy failed',nSwitched:'Language set to English',
+    langTitle:'Language / Bahasa',langSearch:'Search language…',
+    tips:[{e:'🔑',t:'Use unique passwords',b:'Every account needs a different password. If one leaks, others stay safe.'},{e:'📏',t:'At least 16 characters',b:'Longer passwords dramatically increase security.'},{e:'🔀',t:'Mix character types',b:'Use uppercase, lowercase, numbers and symbols together.'},{e:'🗝',t:'Passphrases are strong',b:'"Apple-Sky-Blue-Guitar" is easier to remember and safer than "P@ssw0rd!".'},{e:'🚫',t:'Avoid personal info',b:"Don't use your name, birthday, or common words in passwords."},{e:'🔒',t:'Enable 2FA',b:'Two-factor authentication adds extra security even if your password leaks.'},{e:'🗃',t:'Use a password manager',b:'Helps you store and manage thousands of unique passwords securely.'},{e:'🔄',t:'Rotate passwords regularly',b:'Change at least every 6–12 months for important accounts.'}]},
+  es:{flag:'🇪🇸',name:'Español',code:'ES',
+    sub:'Generador de Contraseñas Pro',gen:'Generadas',sav:'Guardadas',cardGen:'Generator',
+    mRandom:'Aleatorio',mPronounce:'Pronunciable',mPP:'Frase',mPin:'PIN',
+    lblLength:'Longitud',lblChars:'Caracteres',lblSpace:'Espacio',
+    lblSim:'Evitar O0l1',lblAmb:'Evitar {}[]',lblMask:'Ocultar',
+    lblWC:'Nº palabras',lblSep:'Separador:',lblPPN:'+ Número',lblPPC:'Mayúsculas',
+    lblPinD:'Dígitos PIN',lblNR:'Sin repetir',lblNS:'Sin secuencia',
+    btnGen:'Generar Contraseña',
+    ttCopy:'Copiar',ttRef:'Nuevo',ttSV:'Guardar',ttDL:'Descargar',ttSh:'Compartir',
+    tabH:'Historial',tabA:'Análisis',tabV:'Bóveda',tabT:'Consejos',
+    lblClickUse:'Clic para usar',btnClearH:'Borrar todo',
+    emptyH:'Sin historial',emptyV:'Bóveda vacía.',
+    ainpPH:'Introduce una contraseña para analizar…',
+    aStr:'Fortaleza',aEnt:'Bits de Entropía',aLen:'Longitud',aUniq:'Chars únicos',aCrack:'Tiempo estimado de crackeo',
+    cbUp:'Mayúsculas',cbLo:'Minúsculas',cbNu:'Números',cbSy:'Símbolos',
+    vSitePH:'🌐 Sitio / App',vUserPH:'👤 Usuario / Email',vPwPH:'🔑 Contraseña',
+    btnUseCur:'Usar actual',btnSaveV:'Guardar en Bóveda',
+    sLabels:['Muy Débil','Débil','Regular','Fuerte','Muy Fuerte'],
+    tLT1:'<1s',tSec:'s',tMin:'m',tHr:'h',tDay:'d',tYr:'a',tKYr:'k años',tMYr:'M años',tInf:'Siempre',
+    nCopied:'¡Copiado!',nDL:'¡Descargado!',nShared:'¡Copiado para compartir!',nSaved:'¡Guardado!',nDel:'Entrada eliminada',nOpenV:'¡Abre la pestaña Bóveda!',nFill:'¡Rellena sitio y contraseña!',nFail:'Error al copiar',nSwitched:'Idioma cambiado a Español',
+    langTitle:'Idioma / Language',langSearch:'Buscar idioma…',
+    tips:[{e:'🔑',t:'Usa contraseñas únicas',b:'Cada cuenta debe tener una contraseña diferente.'},{e:'📏',t:'Mínimo 16 caracteres',b:'Las contraseñas más largas aumentan drásticamente la seguridad.'},{e:'🔀',t:'Mezcla tipos de caracteres',b:'Usa mayúsculas, minúsculas, números y símbolos juntos.'},{e:'🗝',t:'Las frases son fuertes',b:'"Manzana-Cielo-Azul-Guitarra" es más segura que "P@ssw0rd!".'},{e:'🚫',t:'Evita info personal',b:'No uses tu nombre, fecha de nacimiento, etc.'},{e:'🔒',t:'Activa 2FA',b:'La autenticación de dos factores añade seguridad extra.'},{e:'🗃',t:'Usa un gestor',b:'Ayuda a gestionar miles de contraseñas únicas de forma segura.'},{e:'🔄',t:'Rota contraseñas regularmente',b:'Cámbialas cada 6–12 meses para cuentas importantes.'}]},
+  fr:{flag:'🇫🇷',name:'Français',code:'FR',
+    sub:'Générateur de Mots de Passe',gen:'Générés',sav:'Sauvegardés',cardGen:'Générateur',
+    mRandom:'Aléatoire',mPronounce:'Prononçable',mPP:'Phrase',mPin:'PIN',
+    lblLength:'Longueur',lblChars:'Caractères',lblSpace:'Espace',
+    lblSim:'Éviter O0l1',lblAmb:'Éviter {}[]',lblMask:'Masquer',
+    lblWC:'Nb de mots',lblSep:'Séparateur:',lblPPN:'+ Chiffre',lblPPC:'Majuscule',
+    lblPinD:'Chiffres PIN',lblNR:'Sans répétition',lblNS:'Sans séquence',
+    btnGen:'Générer un mot de passe',
+    ttCopy:'Copier',ttRef:'Nouveau',ttSV:'Sauvegarder',ttDL:'Télécharger',ttSh:'Partager',
+    tabH:'Historique',tabA:'Analyse',tabV:'Coffre',tabT:'Conseils',
+    lblClickUse:'Cliquer pour utiliser',btnClearH:'Tout effacer',
+    emptyH:"Pas d'historique",emptyV:'Coffre vide.',
+    ainpPH:'Entrez un mot de passe à analyser…',
+    aStr:'Force',aEnt:"Bits d'entropie",aLen:'Longueur',aUniq:'Chars uniques',aCrack:'Temps de craquage estimé',
+    cbUp:'Majuscules',cbLo:'Minuscules',cbNu:'Chiffres',cbSy:'Symboles',
+    vSitePH:'🌐 Site / App',vUserPH:'👤 Utilisateur / Email',vPwPH:'🔑 Mot de passe',
+    btnUseCur:'Utiliser actuel',btnSaveV:'Sauvegarder dans le coffre',
+    sLabels:['Très Faible','Faible','Moyen','Fort','Très Fort'],
+    tLT1:'<1s',tSec:'s',tMin:'m',tHr:'h',tDay:'j',tYr:'ans',tKYr:'k ans',tMYr:'M ans',tInf:'Toujours',
+    nCopied:'Copié!',nDL:'Téléchargé!',nShared:'Copié pour partager!',nSaved:'Sauvegardé!',nDel:'Entrée supprimée',nOpenV:"Ouvrez l'onglet Coffre!",nFill:'Remplissez le site et le mot de passe!',nFail:'Échec de copie',nSwitched:'Langue changée en Français',
+    langTitle:'Langue / Language',langSearch:'Rechercher une langue…',
+    tips:[{e:'🔑',t:'Utilisez des mots de passe uniques',b:'Chaque compte doit avoir un mot de passe différent.'},{e:'📏',t:'Au moins 16 caractères',b:'Les mots de passe plus longs augmentent la sécurité.'},{e:'🔀',t:'Mélangez les types de caractères',b:'Utilisez majuscules, minuscules, chiffres et symboles.'},{e:'🗝',t:'Les phrases sont fortes',b:'"Pomme-Ciel-Bleu-Guitare" est plus sûr que "P@ssw0rd!".'},{e:'🚫',t:'Évitez les infos personnelles',b:"N'utilisez pas votre nom, date de naissance, etc."},{e:'🔒',t:'Activez le 2FA',b:"L'authentification à deux facteurs protège extra."},{e:'🗃',t:'Utilisez un gestionnaire',b:'Stockez des milliers de mots de passe uniques en sécurité.'},{e:'🔄',t:'Changez régulièrement',b:'Changez tous les 6–12 mois pour les comptes importants.'}]},
+  hi:{flag:'🇮🇳',name:'हिन्दी',code:'HI',
+    sub:'पासवर्ड जेनरेटर प्रो',gen:'बनाया गया',sav:'सहेजा गया',cardGen:'जेनरेटर',
+    mRandom:'रैंडम',mPronounce:'बोलने योग्य',mPP:'पासफ्रेज',mPin:'पिन',
+    lblLength:'लंबाई',lblChars:'कैरेक्टर',lblSpace:'स्पेस',
+    lblSim:'O0l1 से बचें',lblAmb:'{}[] से बचें',lblMask:'छिपाएं',
+    lblWC:'शब्दों की संख्या',lblSep:'विभाजक:',lblPPN:'+ संख्या',lblPPC:'बड़े अक्षर',
+    lblPinD:'पिन अंक',lblNR:'दोहराव नहीं',lblNS:'क्रम नहीं',
+    btnGen:'पासवर्ड बनाएं',
+    ttCopy:'कॉपी',ttRef:'नया',ttSV:'सहेजें',ttDL:'डाउनलोड',ttSh:'शेयर',
+    tabH:'इतिहास',tabA:'विश्लेषण',tabV:'वॉल्ट',tabT:'टिप्स',
+    lblClickUse:'उपयोग के लिए क्लिक करें',btnClearH:'सब साफ़ करें',
+    emptyH:'कोई इतिहास नहीं',emptyV:'वॉल्ट खाली है।',
+    ainpPH:'विश्लेषण के लिए पासवर्ड डालें…',
+    aStr:'मजबूती',aEnt:'एन्ट्रॉपी बिट्स',aLen:'लंबाई',aUniq:'यूनिक कैरेक्टर',aCrack:'क्रैक समय (10B/sec)',
+    cbUp:'बड़े अक्षर',cbLo:'छोटे अक्षर',cbNu:'संख्या',cbSy:'प्रतीक',
+    vSitePH:'🌐 वेबसाइट / ऐप',vUserPH:'👤 यूजरनेम / ईमेल',vPwPH:'🔑 पासवर्ड',
+    btnUseCur:'वर्तमान उपयोग करें',btnSaveV:'वॉल्ट में सहेजें',
+    sLabels:['बहुत कमजोर','कमजोर','ठीक','मजबूत','बहुत मजबूत'],
+    tLT1:'<1 सेकेंड',tSec:' सेकेंड',tMin:' मिनट',tHr:' घंटे',tDay:' दिन',tYr:' वर्ष',tKYr:' हजार वर्ष',tMYr:' मिलियन वर्ष',tInf:'हमेशा के लिए',
+    nCopied:'कॉपी किया गया!',nDL:'फाइल डाउनलोड!',nShared:'शेयर के लिए कॉपी!',nSaved:'वॉल्ट में सुरक्षित!',nDel:'एंट्री डिलीट',nOpenV:'वॉल्ट टैब खोलें!',nFill:'वेबसाइट और पासवर्ड भरें!',nFail:'कॉपी फेल',nSwitched:'भाषा बदलकर हिंदी कर दी गई है',
+    langTitle:'भाषा / Language',langSearch:'भाषा खोजें…',
+    tips:[{e:'🔑',t:'यूनिक पासवर्ड का प्रयोग करें',b:'हर अकाउंट के लिए अलग पासवर्ड रखें।'},{e:'📏',t:'कम से कम 16 कैरेक्टर',b:'लंबे पासवर्ड सुरक्षा को नाटकीय रूप से बढ़ाते हैं।'},{e:'🔀',t:'कैरेक्टर मिक्स करें',b:'बड़े, छोटे अक्षर, अंक और प्रतीकों का प्रयोग करें।'},{e:'🗝',t:'पासफ्रेज मजबूत होते हैं',b:'"Apple-Sky-Blue-Guitar" याद रखना आसान और सुरक्षित है।'},{e:'🚫',t:'व्यक्तिगत जानकारी से बचें',b:'पासवर्ड में नाम या जन्मदिन का प्रयोग न करें।'},{e:'🔒',t:'2FA सक्षम करें',b:'टू-फैक्टर ऑथेंटिकेशन सुरक्षा की एक अतिरिक्त परत जोड़ता है।'},{e:'🗃',t:'पासवर्ड मैनेजर का प्रयोग करें',b:'हजारों पासवर्ड सुरक्षित रखने में मदद करता है।'},{e:'🔄',t:'नियमित रूप से बदलें',b:'महत्वपूर्ण अकाउंट के लिए हर 6-12 महीने में बदलें।'}]},
+  id:{flag:'🇮🇩',name:'Indonesia',code:'ID',
+    sub:'Password Generator Pro',gen:'Dibuat',sav:'Tersimpan',cardGen:'Generator',
+    mRandom:'Acak',mPronounce:'Diucap',mPP:'Passphrase',mPin:'PIN',
+    lblLength:'Panjang',lblChars:'Karakter',lblSpace:'Spasi',
+    lblSim:'Hindari O0l1',lblAmb:'Hindari {}[]',lblMask:'Sembunyikan',
+    lblWC:'Jumlah kata',lblSep:'Pemisah:',lblPPN:'+ Angka',lblPPC:'Kapital',
+    lblPinD:'Digit PIN',lblNR:'Tanpa ulang',lblNS:'Tanpa urutan',
+    btnGen:'Buat Password',
+    ttCopy:'Salin',ttRef:'Baru',ttSV:'Simpan',ttDL:'Unduh',ttSh:'Bagikan',
+    tabH:'Riwayat',tabA:'Analisis',tabV:'Vault',tabT:'Tips',
+    lblClickUse:'Klik untuk pakai',btnClearH:'Hapus semua',
+    emptyH:'Belum ada riwayat',emptyV:'Vault kosong.',
+    ainpPH:'Masukkan password untuk dianalisis…',
+    aStr:'Kekuatan',aEnt:'Bit Entropi',aLen:'Panjang',aUniq:'Karakter Unik',aCrack:'Estimasi waktu crack (10B/dtk)',
+    cbUp:'Huruf besar',cbLo:'Huruf kecil',cbNu:'Angka',cbSy:'Simbol',
+    vSitePH:'🌐 Website / Aplikasi',vUserPH:'👤 Username / Email',vPwPH:'🔑 Password',
+    btnUseCur:'Pakai saat ini',btnSaveV:'Simpan ke Vault',
+    sLabels:['Sangat Lemah','Lemah','Cukup','Kuat','Sangat Kuat'],
+    tLT1:'<1 dtk',tSec:' dtk',tMin:' mnt',tHr:' jam',tDay:' hari',tYr:' thn',tKYr:' ribu thn',tMYr:' juta thn',tInf:'Selamanya',
+    nCopied:'Disalin!',nDL:'File diunduh!',nShared:'Disalin untuk dibagikan!',nSaved:'Tersimpan di vault!',nDel:'Entri dihapus',nOpenV:'Buka tab Vault!',nFill:'Isi website & password!',nFail:'Gagal menyalin',nSwitched:'Bahasa diubah ke Indonesia',
+    langTitle:'Bahasa / Language',langSearch:'Cari bahasa…',
+    tips:[{e:'🔑',t:'Gunakan password unik',b:'Setiap akun harus memiliki password berbeda. Jika satu bocor, akun lainnya tetap aman.'},{e:'📏',t:'Minimal 16 karakter',b:'Password lebih panjang secara dramatis meningkatkan keamanan.'},{e:'🔀',t:'Campur jenis karakter',b:'Gunakan huruf besar, kecil, angka, dan simbol bersamaan.'},{e:'🗝',t:'Passphrase itu kuat',b:'"Apel-Langit-Biru-Gitar" lebih mudah diingat dan lebih aman dari "P@ssw0rd!".'},{e:'🚫',t:'Hindari info pribadi',b:'Jangan gunakan nama, tanggal lahir, atau kata umum dalam password.'},{e:'🔒',t:'Aktifkan 2FA',b:'Two-Factor Authentication menambah lapisan keamanan extra.'},{e:'🗃',t:'Pakai password manager',b:'Bantu kamu menyimpan dan mengelola ribuan password unik dengan aman.'},{e:'🔄',t:'Ganti password berkala',b:'Ganti setidaknya setiap 6–12 bulan untuk akun penting.'}]},
+  it:{flag:'🇮🇹',name:'Italiano',code:'IT',
+    sub:'Generatore Password Pro',gen:'Generato',sav:'Salvato',cardGen:'Generatore',
+    mRandom:'Casuale',mPronounce:'Pronunciabile',mPP:'Passphrase',mPin:'PIN',
+    lblLength:'Lunghezza',lblChars:'Caratteri',lblSpace:'Spazio',
+    lblSim:'Evita O0l1',lblAmb:'Evita {}[]',lblMask:'Nascondi',
+    lblWC:'Parole',lblSep:'Separatore:',lblPPN:'+ Numero',lblPPC:'Maiuscole',
+    lblPinD:'Cifre PIN',lblNR:'No ripetizioni',lblNS:'No sequenze',
+    btnGen:'Genera Password',
+    ttCopy:'Copia',ttRef:'Nuovo',ttSV:'Salva',ttDL:'Scarica',ttSh:'Condividi',
+    tabH:'Cronologia',tabA:'Analisi',tabV:'Cassaforte',tabT:'Suggerimenti',
+    lblClickUse:'Clicca per usare',btnClearH:'Cancella tutto',
+    emptyH:'Cronologia vuota',emptyV:'Cassaforte vuota.',
+    ainpPH:'Inserisci password da analizzare…',
+    aStr:'Forza',aEnt:'Bit Entropia',aLen:'Lunghezza',aUniq:'Caratteri Unici',aCrack:'Tempo stimato crack',
+    cbUp:'Maiuscole',cbLo:'Minuscole',cbNu:'Numeri',cbSy:'Simboli',
+    vSitePH:'🌐 Sito / App',vUserPH:'👤 Nome utente / Email',vPwPH:'🔑 Password',
+    btnUseCur:'Usa attuale',btnSaveV:'Salva in Cassaforte',
+    sLabels:['Molto Debole','Debole','Sufficiente','Forte','Molto Forte'],
+    tLT1:'<1s',tSec:'s',tMin:'m',tHr:'h',tDay:'g',tYr:'anni',tKYr:'mila anni',tMYr:'mln anni',tInf:'Per sempre',
+    nCopied:'Copiato!',nDL:'Scaricato!',nShared:'Copiato per condividere!',nSaved:'Salvato!',nDel:'Voce eliminata',nOpenV:'Apri la scheda Cassaforte!',nFill:'Inserisci sito e password!',nFail:'Copia fallita',nSwitched:'Lingua cambiata in Italiano',
+    langTitle:'Lingua / Language',langSearch:'Cerca lingua…',
+    tips:[{e:'🔑',t:'Usa password univoche',b:'Ogni account deve avere una password diversa.'},{e:'📏',t:'Almeno 16 caratteri',b:'Password più lunghe aumentano drasticamente la sicurezza.'},{e:'🔀',t:'Mischia i caratteri',b:'Usa maiuscole, minuscole, numeri e simboli insieme.'},{e:'🗝',t:'Le passphrase sono forti',b:'"Mela-Cielo-Blu-Chitarra" è più sicura di "P@ssw0rd!".'},{e:'🚫',t:'Evita info personali',b:'Non usare nomi, date di nascita o parole comuni.'},{e:'🔒',t:'Attiva il 2FA',b:"L'autenticazione a due fattori aggiunge protezione extra."},{e:'🗃',t:'Usa un gestore password',b:'Ti aiuta a gestire migliaia di password in sicurezza.'},{e:'🔄',t:'Cambia regolarmente',b:'Cambia ogni 6-12 mesi per gli account importanti.'}]},
+  ja:{flag:'🇯🇵',name:'日本語',code:'JA',
+    sub:'パスワードジェネレーター',gen:'生成数',sav:'保存数',cardGen:'ジェネレーター',
+    mRandom:'ランダム',mPronounce:'読みやすい',mPP:'パスフレーズ',mPin:'PIN',
+    lblLength:'長さ',lblChars:'文字種',lblSpace:'スペース',
+    lblSim:'O0l1を避ける',lblAmb:'{}[]を避ける',lblMask:'非表示',
+    lblWC:'単語数',lblSep:'区切り:',lblPPN:'+ 数字',lblPPC:'大文字化',
+    lblPinD:'桁数',lblNR:'繰り返しなし',lblNS:'連番なし',
+    btnGen:'パスワード生成',
+    ttCopy:'コピー',ttRef:'新規',ttSV:'保存',ttDL:'ダウンロード',ttSh:'共有',
+    tabH:'履歴',tabA:'分析',tabV:'保管庫',tabT:'ヒント',
+    lblClickUse:'クリックして使用',btnClearH:'全削除',
+    emptyH:'履歴なし',emptyV:'保管庫は空です。',
+    ainpPH:'パスワードを入力して分析…',
+    aStr:'強度',aEnt:'エントロピー',aLen:'長さ',aUniq:'ユニーク文字',aCrack:'推定解読時間（100億回/秒）',
+    cbUp:'大文字',cbLo:'小文字',cbNu:'数字',cbSy:'記号',
+    vSitePH:'🌐 サイト / アプリ',vUserPH:'👤 ユーザー名',vPwPH:'🔑 パスワード',
+    btnUseCur:'現在のを使用',btnSaveV:'保管庫に保存',
+    sLabels:['非常に弱い','弱い','普通','強い','非常に強い'],
+    tLT1:'<1秒',tSec:'秒',tMin:'分',tHr:'時間',tDay:'日',tYr:'年',tKYr:'千年',tMYr:'百万年',tInf:'永遠',
+    nCopied:'コピーしました！',nDL:'ダウンロード完了！',nShared:'共有用コピー！',nSaved:'保管庫に保存！',nDel:'削除しました',nOpenV:'保管庫タブを開く！',nFill:'サイトとパスワードを入力！',nFail:'コピー失敗',nSwitched:'日本語に変更しました',
+    langTitle:'言語 / Language',langSearch:'言語を検索…',
+    tips:[{e:'🔑',t:'固有のパスワードを使用',b:'各アカウントには異なるパスワードを。'},{e:'📏',t:'最低16文字',b:'長いパスワードはセキュリティを大幅に向上させます。'},{e:'🔀',t:'文字種を混在させる',b:'大文字・小文字・数字・記号を組み合わせましょう。'},{e:'🗝',t:'パスフレーズは強力',b:'「りんご-空-青い-ギター」は「P@ssw0rd!」より安全です。'},{e:'🚫',t:'個人情報を避ける',b:'名前・誕生日・電話番号をパスワードに使わないでください。'},{e:'🔒',t:'2FAを有効にする',b:'二要素認証は追加の保護を提供します。'},{e:'🗃',t:'パスワードマネージャーを使う',b:'数千の固有パスワードを安全に管理できます。'},{e:'🔄',t:'定期的に変更する',b:'6〜12ヶ月ごとに変更しましょう。'}]},
+  ko:{flag:'🇰🇷',name:'한국어',code:'KO',
+    sub:'비밀번호 생성기 Pro',gen:'생성됨',sav:'저장됨',cardGen:'생성기',
+    mRandom:'무작위',mPronounce:'발음가능',mPP:'패스프레이즈',mPin:'PIN',
+    lblLength:'길이',lblChars:'문자',lblSpace:'공백',
+    lblSim:'O0l1 제외',lblAmb:'{}[] 제외',lblMask:'숨기기',
+    lblWC:'단어 수',lblSep:'구분자:',lblPPN:'+ 숫자',lblPPC:'대문자',
+    lblPinD:'PIN 자릿수',lblNR:'반복 없음',lblNS:'연속 없음',
+    btnGen:'비밀번호 생성',
+    ttCopy:'복사',ttRef:'새로',ttSV:'저장',ttDL:'다운로드',ttSh:'공유',
+    tabH:'기록',tabA:'분석',tabV:'볼트',tabT:'팁',
+    lblClickUse:'클릭하여 사용',btnClearH:'전체 삭제',
+    emptyH:'기록 없음',emptyV:'볼트가 비어 있습니다.',
+    ainpPH:'분석할 비밀번호 입력…',
+    aStr:'강도',aEnt:'엔트로피 비트',aLen:'길이',aUniq:'고유 문자',aCrack:'예상 해킹 시간',
+    cbUp:'대문자',cbLo:'소문자',cbNu:'숫자',cbSy:'기호',
+    vSitePH:'🌐 웹사이트 / 앱',vUserPH:'👤 사용자명 / 이메일',vPwPH:'🔑 비밀번호',
+    btnUseCur:'현재 것 사용',btnSaveV:'볼트에 저장',
+    sLabels:['매우 약함','약함','보통','강함','매우 강함'],
+    tLT1:'<1초',tSec:'초',tMin:'분',tHr:'시간',tDay:'일',tYr:'년',tKYr:'천년',tMYr:'백만년',tInf:'영원히',
+    nCopied:'복사됨!',nDL:'다운로드됨!',nShared:'공유를 위해 복사됨!',nSaved:'볼트에 저장됨!',nDel:'항목 삭제됨',nOpenV:'볼트 탭을 열기!',nFill:'웹사이트와 비밀번호를 입력하세요!',nFail:'복사 실패',nSwitched:'언어를 한국어로 변경했습니다',
+    langTitle:'언어 / Language',langSearch:'언어 검색…',
+    tips:[{e:'🔑',t:'고유한 비밀번호 사용',b:'각 계정마다 다른 비밀번호를 사용하세요.'},{e:'📏',t:'최소 16자',b:'긴 비밀번호는 보안을 크게 향상시킵니다.'},{e:'🔀',t:'문자 유형 혼합',b:'대문자, 소문자, 숫자, 기호를 함께 사용하세요.'},{e:'🗝',t:'패스프레이즈가 강력함',b:'"사과-하늘-파란-기타"는 "P@ssw0rd!"보다 안전합니다.'},{e:'🚫',t:'개인 정보 피하기',b:'이름, 생일 등을 비밀번호에 사용하지 마세요.'},{e:'🔒',t:'2FA 활성화',b:'이중 인증은 추가 보호를 제공합니다.'},{e:'🗃',t:'비밀번호 관리자 사용',b:'수천 개의 고유한 비밀번호를 안전하게 관리합니다.'},{e:'🔄',t:'정기적으로 변경',b:'중요한 계정은 6-12개월마다 변경하세요.'}]},
+  pt:{flag:'🇧🇷',name:'Português',code:'PT',
+    sub:'Gerador de Senhas Pro',gen:'Geradas',sav:'Salvas',cardGen:'Gerador',
+    mRandom:'Aleatório',mPronounce:'Pronunciável',mPP:'Frase',mPin:'PIN',
+    lblLength:'Comprimento',lblChars:'Caracteres',lblSpace:'Espaço',
+    lblSim:'Evitar O0l1',lblAmb:'Evitar {}[]',lblMask:'Ocultar',
+    lblWC:'Nº palabras',lblSep:'Separador:',lblPPN:'+ Número',lblPPC:'Maiúscula',
+    lblPinD:'Dígitos PIN',lblNR:'Sem repetição',lblNS:'Sem sequência',
+    btnGen:'Gerar Senha',
+    ttCopy:'Copiar',ttRef:'Novo',ttSV:'Salvar',ttDL:'Baixar',ttSh:'Compartilhar',
+    tabH:'Histórico',tabA:'Análise',tabV:'Cofre',tabT:'Dicas',
+    lblClickUse:'Clique para usar',btnClearH:'Limpar tudo',
+    emptyH:'Sem histórico',emptyV:'Cofre vazio.',
+    ainpPH:'Digite uma senha para analisar…',
+    aStr:'Força',aEnt:'Bits de Entropia',aLen:'Comprimento',aUniq:'Chars únicos',aCrack:'Tempo estimado de cracking',
+    cbUp:'Maiúsculas',cbLo:'Minúsculas',cbNu:'Números',cbSy:'Símbolos',
+    vSitePH:'🌐 Site / App',vUserPH:'👤 Usuário / Email',vPwPH:'🔑 Senha',
+    btnUseCur:'Usar atual',btnSaveV:'Salvar no Cofre',
+    sLabels:['Muito Fraca','Fraca','Regular','Forte','Muito Forte'],
+    tLT1:'<1s',tSec:'s',tMin:'m',tHr:'h',tDay:'d',tYr:'anos',tKYr:'k anos',tMYr:'M anos',tInf:'Para sempre',
+    nCopied:'Copiado!',nDL:'Baixado!',nShared:'Copiado para compartilhar!',nSaved:'Salvo no cofre!',nDel:'Entrada excluída',nOpenV:'Abra a aba Cofre!',nFill:'Preencha site e senha!',nFail:'Falha ao copiar',nSwitched:'Idioma alterado para Português',
+    langTitle:'Idioma / Language',langSearch:'Buscar idioma…',
+    tips:[{e:'🔑',t:'Use senhas únicas',b:'Cada conta deve ter uma senha diferente.'},{e:'📏',t:'Mínimo 16 caracteres',b:'Senhas mais longas aumentam drasticamente a segurança.'},{e:'🔀',t:'Misture tipos de caracteres',b:'Use maiúsculas, minúsculas, números e símbolos juntos.'},{e:'🗝',t:'Frases são fortes',b:'"Maçã-Céu-Azul-Violão" é mais segura que "P@ssw0rd!".'},{e:'🚫',t:'Evite informações pessoais',b:'Não use nome, data de nascimento etc. em senhas.'},{e:'🔒',t:'Ative o 2FA',b:'A autenticação em dois fatores oferece proteção extra.'},{e:'🗃',t:'Use um gerenciador',b:'Ajuda a gerenciar milhares de senhas únicas com segurança.'},{e:'🔄',t:'Troque regularmente',b:'Especialmente para contas importantes a cada 6–12 meses.'}]},
+  ru:{flag:'🇷🇺',name:'Русский',code:'RU',
+    sub:'Password Generator Pro',gen:'Создано',sav:'Сохранено',cardGen:'Генератор',
+    mRandom:'Случайный',mPronounce:'Произносимый',mPP:'Фраза',mPin:'ПИН-код',
+    lblLength:'Длина',lblChars:'Символы',lblSpace:'Пробелы',
+    lblSim:'Исключить O0l1',lblAmb:'Исключить {}[]',lblMask:'Скрыть',
+    lblWC:'Кол-во слов',lblSep:'Разделитель:',lblPPN:'+ Цифры',lblPPC:'Заглавные',
+    lblPinD:'Цифры ПИН',lblNR:'Без повторов',lblNS:'Без порядка',
+    btnGen:'Создать пароль',
+    ttCopy:'Копировать',ttRef:'Обновить',ttSV:'Сохранить',ttDL:'Скачать',ttSh:'Поделиться',
+    tabH:'История',tabA:'Анализ',tabV:'Сейф',tabT:'Советы',
+    lblClickUse:'Нажмите, чтобы использовать',btnClearH:'Очистить всё',
+    emptyH:'История пуста',emptyV:'Сейф пуст.',
+    ainpPH:'Введите пароль для анализа…',
+    aStr:'Сложность',aEnt:'Энтропия (бит)',aLen:'Длина',aUniq:'Уникальные символы',aCrack:'Время взлома (10 млрд/сек)',
+    cbUp:'Заглавные',cbLo:'Строчные',cbNu:'Цифры',cbSy:'Символы',
+    vSitePH:'🌐 Сайт / Приложение',vUserPH:'👤 Логин / Email',vPwPH:'🔑 Пароль',
+    btnUseCur:'Использовать текущий',btnSaveV:'В сейф',
+    sLabels:['Очень слабый','Слабый','Средний','Сильный','Очень сильный'],
+    tLT1:'< 1 сек',tSec:' сек',tMin:' мин',tHr:' ч',tDay:' дн.',tYr:' л.',tKYr:' тыс. лет',tMYr:' млн лет',tInf:'Вечно',
+    nCopied:'Скопировано!',nDL:'Файл загружен!',nShared:'Скопировано для отправки!',nSaved:'Сохранено в сейфе!',nDel:'Запись удалена',nOpenV:'Откройте вкладку Сейф!',nFill:'Введите сайт и пароль!',nFail:'Ошибка копирования',nSwitched:'Язык изменен на Русский',
+    langTitle:'Язык / Language',langSearch:'Поиск языка…',
+    tips:[{e:'🔑',t:'Используйте уникальные пароли',b:'Для каждого аккаунта должен быть свой пароль.'},{e:'📏',t:'Минимум 16 символов',b:'Длинные пароли значительно повышают уровень безопасности.'},{e:'🔀',t:'Смешивайте символы',b:'Используйте заглавные и строчные буквы, цифры и спецсимволы вместе.'},{e:'🗝',t:'Парольные фразы лучше',b:'"Яблоко-Небо-Синее-Гитара" легче запомнить и сложнее взломать.'},{e:'🚫',t:'Без личных данных',b:'Не используйте имена, даты рождения или общеизвестные слова.'},{e:'🔒',t:'Включите 2FA',b:'Двухфакторная аутентификация добавляет мощный дополнительный слой защиты.'},{e:'🗃',t:'Менеджер паролей',b:'Помогает безопасно хранить и управлять сотнями уникальных паролей.'},{e:'🔄',t:'Регулярно обновляйте',b:'Меняйте пароли для важных аккаунтов каждые 6–12 месяцев.'}]},
+  tr:{flag:'🇹🇷',name:'Türkçe',code:'TR',
+    sub:'Şifre Oluşturucu Pro',gen:'Oluşturuldu',sav:'Kaydedildi',cardGen:'Oluşturucu',
+    mRandom:'Rastgele',mPronounce:'Okunabilir',mPP:'Parola Cümlesi',mPin:'PIN',
+    lblLength:'Uzunluk',lblChars:'Karakterler',lblSpace:'Boşluk',
+    lblSim:'O0l1 Hariç Tut',lblAmb:'{}[] Hariç Tut',lblMask:'Gizle',
+    lblWC:'Kelime sayısı',lblSep:'Ayırıcı:',lblPPN:'+ Sayı',lblPPC:'Büyük Harf',
+    lblPinD:'PIN Hanesi',lblNR:'Tekrar yok',lblNS:'Ardışık yok',
+    btnGen:'Şifre Oluştur',
+    ttCopy:'Kopyala',ttRef:'Yeni',ttSV:'Kaydet',ttDL:'İndir',ttSh:'Paylaş',
+    tabH:'Geçmiş',tabA:'Analiz',tabV:'Kasa',tabT:'İpuçları',
+    lblClickUse:'Kullanmak için tıkla',btnClearH:'Tümünü sil',
+    emptyH:'Geçmiş boş',emptyV:'Kasa boş.',
+    ainpPH:'Analiz için şifre girin…',
+    aStr:'Güç',aEnt:'Entropi Biti',aLen:'Uzunluk',aUniq:'Benzersiz Karakter',aCrack:'Tahmini kırılma süresi',
+    cbUp:'Büyük harf',cbLo:'Küçük harf',cbNu:'Sayılar',cbSy:'Semboller',
+    vSitePH:'🌐 Web sitesi / Uygulama',vUserPH:'👤 Kullanıcı adı / E-posta',vPwPH:'🔑 Şifre',
+    btnUseCur:'Mevcut olanı kullan',btnSaveV:'Kasaya kaydet',
+    sLabels:['Çok Zayıf','Zayıf','Orta','Güçlü','Çok Güçlü'],
+    tLT1:'<1 sn',tSec:' sn',tMin:' dk',tHr:' sa',tDay:' gün',tYr:' yıl',tKYr:' bin yıl',tMYr:' milyon yıl',tInf:'Sonsuza dek',
+    nCopied:'Kopyalandı!',nDL:'Dosya indirildi!',nShared:'Paylaşım için kopyalandı!',nSaved:'Kasaya kaydedildi!',nDel:'Giriş silindi',nOpenV:'Kasa sekmesini açın!',nFill:'Site ve şifreyi doldurun!',nFail:'Kopyalama başarısız',nSwitched:'Dil Türkçe olarak değiştirildi',
+    langTitle:'Dil / Language',langSearch:'Dil ara…',
+    tips:[{e:'🔑',t:'Benzersiz şifreler kullanın',b:'Her hesap için farklı bir şifre kullanmalısınız.'},{e:'📏',t:'En az 16 karakter',b:'Daha uzun şifreler güvenliği önemli ölçüde artırır.'},{e:'🔀',t:'Karakter tiplerini karıştırın',b:'Büyük, küçük harf, sayı ve sembolleri bir arada kullanın.'},{e:'🗝',t:'Parola cümleleri güçlüdür',b:'"Elma-Gökyüzü-Mavi-Gitar" hatırlaması daha kolay ve daha güvenlidir.'},{e:'🚫',t:'Kişisel bilgiden kaçının',b:'Şifrelerinizde adınızı, doğum gününüzü veya yaygın kelimeleri kullanmayın.'},{e:'🔒',t:"2FA'yı etkinleştirin",b:'İki faktörlü kimlik doğrulama, şifreniz sızsa bile ekstra koruma sağlar.'},{e:'🗃',t:'Şifre yöneticisi kullanın',b:'Binlerce benzersiz şifreyi güvenli bir şekilde saklamanıza yardımcı olur.'},{e:'🔄',t:'Düzenli olarak güncelleyin',b:'Önemli hesaplar için en az 6-12 ayda bir şifrenizi değiştirin.'}]},
+  vi:{flag:'🇻🇳',name:'Tiếng Việt',code:'VI',
+    sub:'Trình tạo Mật khẩu Pro',gen:'Đã tạo',sav:'Đã lưu',cardGen:'Trình tạo',
+    mRandom:'Ngẫu nhiên',mPronounce:'Dễ đọc',mPP:'Cụm mật khẩu',mPin:'Mã PIN',
+    lblLength:'Độ dài',lblChars:'Ký tự',lblSpace:'Dấu cách',
+    lblSim:'Tránh O0l1',lblAmb:'Tránh {}[]',lblMask:'Ẩn mật khẩu',
+    lblWC:'Số lượng từ',lblSep:'Dấu cách:',lblPPN:'+ Số',lblPPC:'Viết hoa',
+    lblPinD:'Số chữ số',lblNR:'Không lặp lại',lblNS:'Không liên tiếp',
+    btnGen:'Tạo mật khẩu',
+    ttCopy:'Sao chép',ttRef:'Làm mới',ttSV:'Lưu',ttDL:'Tải về',ttSh:'Chia sẻ',
+    tabH:'Lịch sử',tabA:'Phân tích',tabV:'Kho lưu trữ',tabT:'Mẹo nhỏ',
+    lblClickUse:'Nhấn để dùng',btnClearH:'Xóa tất cả',
+    emptyH:'Chưa có lịch sử',emptyV:'Kho lưu trữ trống.',
+    ainpPH:'Nhập mật khẩu để phân tích…',
+    aStr:'Độ mạnh',aEnt:'Entropy Bits',aLen:'Độ dài',aUniq:'Ký tự duy nhất',aCrack:'Thời gian bẻ khóa dự kiến',
+    cbUp:'Chữ hoa',cbLo:'Chữ thường',cbNu:'Số',cbSy:'Ký hiệu',
+    vSitePH:'🌐 Website / Ứng dụng',vUserPH:'👤 Tài khoản / Email',vPwPH:'🔑 Mật khẩu',
+    btnUseCur:'Dùng mật khẩu này',btnSaveV:'Lưu vào kho',
+    sLabels:['Rất yếu','Yếu','Trung bình','Mạnh','Rất mạnh'],
+    tLT1:'<1 giây',tSec:' giây',tMin:' phút',tHr:' giờ',tDay:' ngày',tYr:' năm',tKYr:' nghìn năm',tMYr:' triệu năm',tInf:'Vĩnh viễn',
+    nCopied:'Đã sao chép!',nDL:'Đã tải file!',nShared:'Đã sao chép để chia sẻ!',nSaved:'Đã lưu vào kho!',nDel:'Đã xóa mục này',nOpenV:'Mở tab Kho lưu trữ!',nFill:'Nhập web và mật khẩu!',nFail:'Lỗi sao chép',nSwitched:'Đã chuyển sang Tiếng Việt',
+    langTitle:'Ngôn ngữ / Language',langSearch:'Tìm kiếm ngôn ngữ…',
+    tips:[{e:'🔑',t:'Dùng mật khẩu duy nhất',b:'Mỗi tài khoản nên có mật khẩu khác nhau.'},{e:'📏',t:'Ít nhất 16 ký tự',b:'Mật khẩu dài hơn giúp tăng cường bảo mật một cách đáng kể.'},{e:'🔀',t:'Trộn các loại ký tự',b:'Kết hợp chữ hoa, chữ thường, số và ký hiệu cùng lúc.'},{e:'🗝',t:'Cụm mật khẩu rất mạnh',b:'"Tao-Troi-Xanh-Dan" dễ nhớ và an toàn hơn nhiều so với "P@ssw0rd!".'},{e:'🚫',t:'Tránh thông tin cá nhân',b:'Đừng dùng tên, ngày sinh hay từ thông dụng làm mật khẩu.'},{e:'🔒',t:'Bật bảo mật 2 lớp (2FA)',b:'Thêm một lớp bảo vệ ngay cả khi mật khẩu của bạn bị lộ.'},{e:'🗃',t:'Dùng trình quản lý mật khẩu',b:'Giúp bạn lưu trữ và quản lý hàng nghìn mật khẩu một cách an toàn.'},{e:'🔄',t:'Thay đổi định kỳ',b:'Nên thay đổi mật khẩu quan trọng sau mỗi 6–12 tháng.'}]},
+  zh:{flag:'🇨🇳',name:'中文',code:'ZH',
+    sub:'密码生成器专业版',gen:'已生成',sav:'已保存',cardGen:'生成器',
+    mRandom:'随机',mPronounce:'易读',mPP:'词组',mPin:'PIN',
+    lblLength:'长度',lblChars:'字符',lblSpace:'空格',
+    lblSim:'避免O0l1',lblAmb:'避免{}[]',lblMask:'隐藏',
+    lblWC:'单词数',lblSep:'分隔符:',lblPPN:'+ 数字',lblPPC:'首字母大写',
+    lblPinD:'PIN位数',lblNR:'无重复',lblNS:'无连续',
+    btnGen:'生成密码',
+    ttCopy:'复制',ttRef:'新建',ttSV:'保存',ttDL:'下载',ttSh:'分享',
+    tabH:'历史',tabA:'分析',tabV:'保险库',tabT:'提示',
+    lblClickUse:'点击使用',btnClearH:'清除全部',
+    emptyH:'暂无历史',emptyV:'保险库为空。',
+    ainpPH:'输入密码进行分析…',
+    aStr:'强度',aEnt:'熵位',aLen:'长度',aUniq:'唯一字符',aCrack:'预计破解时间（100亿次/秒）',
+    cbUp:'大写字母',cbLo:'小写字母',cbNu:'数字',cbSy:'符号',
+    vSitePH:'🌐 网站 / 应用',vUserPH:'👤 用户名 / 邮箱',vPwPH:'🔑 密码',
+    btnUseCur:'使用当前',btnSaveV:'保存到保险库',
+    sLabels:['非常弱','弱','一般','强','非常强'],
+    tLT1:'<1秒',tSec:'秒',tMin:'分',tHr:'时',tDay:'天',tYr:'年',tKYr:'千年',tMYr:'百万年',tInf:'永远',
+    nCopied:'已复制！',nDL:'已下载！',nShared:'已复制分享！',nSaved:'已保存！',nDel:'已删除',nOpenV:'打开保险库！',nFill:'请填写网站和密码！',nFail:'复制失败',nSwitched:'语言已切换为中文',
+    langTitle:'语言 / Language',langSearch:'搜索语言…',
+    tips:[{e:'🔑',t:'使用唯一密码',b:'每个账户应有不同的密码。'},{e:'📏',t:'至少16个字符',b:'更长的密码大幅提升安全性。'},{e:'🔀',t:'混合字符类型',b:'同时使用大小写字母、数字和符号。'},{e:'🗝',t:'词组密码很强大',b:'"苹果-天空-蓝色-吉他"比"P@ssw0rd!"更易记且更安全。'},{e:'🚫',t:'避免个人信息',b:'不要在密码中使用姓名、生日等个人信息。'},{e:'🔒',t:'启用双重认证',b:'即使密码泄露，双重认证也能提供额外保障。'},{e:'🗃',t:'使用密码管理器',b:'帮助您安全地存储和管理数千个唯一密码。'},{e:'🔄',t:'定期更换密码',b:'重要账户至少每6-12个月更换一次。'}]}
+};
+
+/* ── GLOBALS ── */
+var curLang='id', mode='random', curPw='', genCount=0, hist=[], vault=[];
+var CIRC=144.51; // 2*pi*23
+var SC=['#f87171','#fb923c','#fbbf24','#4ade80','#34d399'];
+
+function g(id){return document.getElementById(id);}
+function T(k){return (L10N[curLang]&&L10N[curLang][k])||k;}
+
+/* ── LOCALSTORAGE ── */
+function loadStorage(){
+  try{
+    var v=localStorage.getItem('mv_vault'); if(v) vault=JSON.parse(v);
+    var h=localStorage.getItem('mv_hist');  if(h) hist=JSON.parse(h);
+    var gc=localStorage.getItem('mv_gc');   if(gc) genCount=parseInt(gc)||0;
+  }catch(e){}
+  g('statGen').textContent=genCount;
+  g('statSav').textContent=vault.length;
+  renderHist(); renderVault();
+}
+function saveVaultLS(){localStorage.setItem('mv_vault',JSON.stringify(vault));g('statSav').textContent=vault.length;}
+function saveHistLS(){localStorage.setItem('mv_hist',JSON.stringify(hist));}
+function saveGC(){localStorage.setItem('mv_gc',genCount);}
+
+/* ── LANGUAGE MODAL ── */
+window.openLangModal=function(){
+  var o=g('langOverlay'); o.classList.add('open');
+  var s=g('langSearch'); if(s){s.value='';filterLangs('');}
+  buildLangGrid();
+  g('modalLangTitle').textContent=T('langTitle');
+  if(s) s.placeholder=T('langSearch')||'Search…';
+  setTimeout(function(){if(s)s.focus();},350);
+};
+window.closeLangModal=function(){g('langOverlay').classList.remove('open');};
+
+// ESC to close
+document.addEventListener('keydown',function(e){if(e.key==='Escape') window.closeLangModal();});
+
+function buildLangGrid(){
+  var keys=Object.keys(L10N);
+  var html=keys.map(function(k){
+    var l=L10N[k];
+    return '<div class="lang-item'+(k===curLang?' active':'')+'" id="li-'+k+'" onclick="selectLang(\''+k+'\')">'+
+      '<span class="lang-flag">'+l.flag+'</span>'+
+      '<div class="lang-info">'+
+        '<div class="lang-name">'+l.name+'</div>'+
+      '</div>'+
+      '<span class="lang-code-badge">'+l.code+'</span>'+
+      '<div class="active-check"><svg viewBox="0 0 10 10"><polyline points="2,5 4,8 8,3"/></svg></div>'+
+    '</div>';
+  }).join('');
+  g('langGrid').innerHTML=html;
+}
+
+window.filterLangs=function(q){
+  var keys=Object.keys(L10N);
+  q=q.toLowerCase().trim();
+  keys.forEach(function(k){
+    var el=g('li-'+k);
+    if(!el) return;
+    var l=L10N[k];
+    var match=!q||l.name.toLowerCase().includes(q)||l.code.toLowerCase().includes(q)||k.includes(q);
+    el.classList.toggle('hidden',!match);
+  });
+};
+
+window.selectLang=function(k){
+  if(k===curLang){window.closeLangModal();return;}
+  curLang=k;
+  applyLang();
+  window.closeLangModal();
+  notify(T('nSwitched'));
+  var ai=g('ainp'); if(ai&&ai.value) ai.dispatchEvent(new Event('input'));
+};
+
+function applyLang(){
+  var L=L10N[curLang]; if(!L) return;
+  document.documentElement.lang=curLang;
+  document.documentElement.dir=(curLang==='ar')?'rtl':'ltr';
+  g('curLangCode').textContent=L.code;
+  g('hSub').textContent=L.sub;
+  g('lblGen').textContent=L.gen;
+  g('lblSav').textContent=L.sav;
+  g('cardHtGen').textContent=L.cardGen;
+  g('mRandom').textContent=L.mRandom;
+  g('mPronounce').textContent=L.mPronounce;
+  g('mPassphrase').textContent=L.mPP;
+  g('mPin').textContent=L.mPin;
+  g('lblLength').textContent=L.lblLength;
+  g('lblChars').textContent=L.lblChars;
+  g('lblSpace').textContent=L.lblSpace;
+  g('lblSim').textContent=L.lblSim;
+  g('lblAmb').textContent=L.lblAmb;
+  g('lblMask').textContent=L.lblMask;
+  g('lblWC').textContent=L.lblWC;
+  g('lblSep').textContent=L.lblSep;
+  g('lblPPN').textContent=L.lblPPN;
+  g('lblPPC').textContent=L.lblPPC;
+  g('lblPinD').textContent=L.lblPinD;
+  g('lblNR').textContent=L.lblNR;
+  g('lblNS').textContent=L.lblNS;
+  g('btnGenTxt').textContent=L.btnGen;
+  g('ttCopy').textContent=L.ttCopy;
+  g('ttRef').textContent=L.ttRef;
+  g('ttSV').textContent=L.ttSV;
+  g('ttDL').textContent=L.ttDL;
+  g('ttSh').textContent=L.ttSh;
+  g('tabHist').textContent=L.tabH;
+  g('tabAna').textContent=L.tabA;
+  g('tabVault').textContent=L.tabV;
+  g('tabTips').textContent=L.tabT;
+  g('lblClickUse').textContent=L.lblClickUse;
+  g('btnClearH').textContent=L.btnClearH;
+  g('ainp').placeholder=L.ainpPH;
+  g('vSite').placeholder=L.vSitePH;
+  g('vUser').placeholder=L.vUserPH;
+  g('vPw').placeholder=L.vPwPH;
+  g('btnUseCur').textContent=L.btnUseCur;
+  g('btnSaveV').textContent=L.btnSaveV;
+  if(curPw) updStrength(curPw); else g('pwt').textContent='—';
+  renderHist(); renderVault(); renderTips();
+}
+
+/* ── NOTIFY ── */
+function notify(msg,err){
+  var el=g('notif');
+  g('ntxt').textContent=msg;
+  el.style.borderColor=err?'rgba(248,113,113,.4)':'rgba(59,130,246,.22)';
+  g('ndot').style.background=err?'#f87171':'var(--blue)';
+  g('ndot').style.boxShadow=err?'0 0 8px #f87171':'0 0 8px var(--blue)';
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(function(){el.classList.remove('show');},2500);
+}
+
+/* ── SLIDERS ── */
+function initSlider(rid,vid){
+  var r=g(rid),v=g(vid); if(!r||!v) return;
+  function upd(){v.textContent=r.value;r.style.setProperty('--pct',(r.value-r.min)/(r.max-r.min)*100+'%');}
+  r.addEventListener('input',upd); upd();
+}
+initSlider('lenRange','lenVal');
+initSlider('wcRange','wcVal');
+initSlider('pinRange','pinVal');
+
+/* ── PILLS & CHIPS ── */
+[['cU','pU'],['cL','pL'],['cN','pN'],['cS','pS'],['cSp','pSp']].forEach(function(p){
+  var c=g(p[0]),pi=g(p[1]); if(!c||!pi) return;
+  c.addEventListener('change',function(){pi.classList.toggle('on',c.checked);});
+});
+['chipSim','chipAmb','chipMask','chipNR','chipNS','chipPPN','chipPPC'].forEach(function(id){
+  var ch=g(id); if(!ch) return; var inp=ch.querySelector('input'); if(!inp) return;
+  inp.addEventListener('change',function(){ch.classList.toggle('on',inp.checked);});
+});
+
+/* ── MODE ── */
+window.setMode=function(m){
+  mode=m;
+  var map={random:'mRandom',pronounce:'mPronounce',passphrase:'mPassphrase',pin:'mPin'};
+  Object.keys(map).forEach(function(k){var el=g(map[k]);if(el)el.classList.toggle('on',k===m);});
+  g('panRandom').style.display=(m==='random'||m==='pronounce')?'':'none';
+  g('panPP').style.display=m==='passphrase'?'':'none';
+  g('panPin').style.display=m==='pin'?'':'none';
+};
+
+/* ── GENERATION ── */
+function charset(){
+  var c='';
+  if(g('cU').checked) c+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if(g('cL').checked) c+='abcdefghijklmnopqrstuvwxyz';
+  if(g('cN').checked) c+='0123456789';
+  if(g('cS').checked) c+='!@#$%^&*-_=+<>?';
+  if(g('cSp').checked) c+=' ';
+  return c;
+}
+function genRandom(len){
+  var ch=charset(); if(!ch) return '';
+  var sim='O0l1I|',amb='{}[]()\\/"\'`~,;:.<>';
+  var arr=ch.split('').filter(function(c){
+    if(g('cSim').checked&&sim.indexOf(c)>-1) return false;
+    if(g('cAmb').checked&&amb.indexOf(c)>-1) return false;
+    return true;
+  });
+  if(!arr.length) return '';
+  var pw=''; while(pw.length<len){pw+=arr[cryptoRandom(0,arr.length-1)];}
+  return pw;
+}
+function genPronounce(len){
+  var con='bcdfghjklmnpqrstvwxyz',vow='aeiou';
+  var pw=''; for(var i=0;pw.length<len;i++){var pool=(i%2===0)?con:vow;pw+=pool[cryptoRandom(0,pool.length-1)];}
+  if(g('cU').checked) pw=pw.charAt(0).toUpperCase()+pw.slice(1);
+  if(g('cN').checked){var p=cryptoRandom(0,pw.length-2);pw=pw.slice(0,p)+cryptoRandom(0,9)+pw.slice(p+1);}
+  return pw.slice(0,len);
+}
+function genPassphrase(){
+  var cnt=parseInt(g('wcRange').value),sep=g('sepInp').value||'-';
+  var addN=g('cPPN').checked,doCap=g('cPPC').checked;
+  var ws=[];
+  for(var i=0;i<cnt;i++){var w=WL[cryptoRandom(0,WL.length-1)];if(doCap)w=w.charAt(0).toUpperCase()+w.slice(1);ws.push(w);}
+  return ws.join(sep)+(addN?sep+cryptoRandom(10,999):'');
+}
+function genPin(){
+  var len=parseInt(g('pinRange').value),noRep=g('cNR').checked,noSeq=g('cNS').checked;
+  var digs=[],tries=0;
+  while(digs.length<len&&tries<2000){
+    tries++;var d=cryptoRandom(0,9);
+    if(noRep&&digs.indexOf(d)>-1) continue;
+    if(noSeq&&digs.length>0&&Math.abs(d-digs[digs.length-1])<=1) continue;
+    digs.push(d);
+  }
+  return digs.join('');
+}
+function generate(){
+  if(mode==='random') return genRandom(parseInt(g('lenRange').value));
+  if(mode==='pronounce') return genPronounce(parseInt(g('lenRange').value));
+  if(mode==='passphrase') return genPassphrase();
+  if(mode==='pin') return genPin();
+  return '';
+}
+
+/* ── STRENGTH ── */
+function entropy(pw){
+  if(!pw.length) return 0;
+  var p=0;
+  if(/[A-Z]/.test(pw)) p+=26; if(/[a-z]/.test(pw)) p+=26; if(/\d/.test(pw)) p+=10;
+  if(/[^A-Za-z0-9 ]/.test(pw)) p+=32; if(/ /.test(pw)) p+=1;
+  return Math.round(pw.length*Math.log2(Math.max(p,2)));
+}
+function eScore(b){if(b<28)return 0;if(b<36)return 1;if(b<60)return 2;if(b<80)return 3;if(b<100)return 4;return 5;}
+function crackTime(bits){
+  var L=L10N[curLang],v=Math.pow(2,bits)/1e10;
+  if(v<1) return L.tLT1;
+  if(v<60) return Math.round(v)+L.tSec;
+  if(v<3600) return Math.round(v/60)+L.tMin;
+  if(v<86400) return Math.round(v/3600)+L.tHr;
+  if(v<31536e3) return Math.round(v/86400)+L.tDay;
+  if(v<3.154e9) return Math.round(v/31536e3)+L.tYr;
+  if(v<3.154e12) return (v/3.154e9).toFixed(1)+L.tKYr;
+  if(v<3.154e15) return (v/3.154e12).toFixed(1)+L.tMYr;
+  return L.tInf;
+}
+function updStrength(pw){
+  var bits=entropy(pw),score=eScore(bits),col=pw?SC[Math.min(score,4)]:'var(--muted)';
+  document.querySelectorAll('.sb').forEach(function(b,i){
+    var lit=(i<score&&pw);
+    b.style.background=lit?col:'rgba(59,130,246,.08)';
+    b.style.color=col;
+    b.classList.toggle('lit',!!lit);
+  });
+  var SL=L10N[curLang].sLabels;
+  g('slbl').textContent=pw?SL[Math.min(score,4)]:'—';
+  g('slbl').style.color=col;
+  g('crack').textContent=pw?('\u23f1 '+crackTime(bits)):'';
+  g('ebits').textContent=bits;
+  g('ebits').style.color=col;
+  var pct=Math.min(bits/128,1);
+  g('rfl').style.strokeDashoffset=CIRC-pct*CIRC;
+  g('rfl').style.stroke=col;
+}
+
+/* ── SET PASSWORD ── */
+function setPw(pw){
+  curPw=pw;
+  var el=g('pwt');
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  var mask=g('cMask')&&g('cMask').checked;
+  el.className='pwt'+(mask?' masked':'');
+  el.textContent=pw||'—';
+  updStrength(pw);
+  if(pw){addHist(pw);genCount++;g('statGen').textContent=genCount;saveGC();}
+}
+
+/* ── HISTORY ── */
+function addHist(pw){
+  var bits=entropy(pw),score=eScore(bits);
+  var time=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  hist.unshift({pw:pw,score:score,time:time,len:pw.length});
+  if(hist.length>20) hist.pop();
+  saveHistLS(); renderHist();
+}
+function renderHist(){
+  var el=g('hlist');
+  if(!hist.length){
+    el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>'+T('emptyH')+'</span></div>';
+    return;
+  }
+  el.innerHTML=hist.map(function(h,i){
+    return '<div class="hi" onclick="useHist('+i+')">'+
+      '<div class="hpw">'+escHtml(h.pw)+'</div>'+
+      '<div class="hmeta">'+
+        '<div class="htime">'+h.time+'</div>'+
+        '<div style="display:flex;align-items:center;gap:3px;">'+
+          '<div class="hdot" style="background:'+SC[Math.min(h.score,4)]+'"></div>'+
+          '<span class="hlen">'+h.len+'c</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+window.useHist=function(i){
+  var pw=hist[i].pw; curPw=pw;
+  g('pwt').className='pwt'; g('pwt').textContent=pw;
+  updStrength(pw);
+  navigator.clipboard.writeText(pw).then(function(){notify(T('nCopied'));});
+};
+window.clearHist=function(){hist=[];saveHistLS();renderHist();};
+
+/* ── ANALYZE ── */
+g('ainp').addEventListener('input',function(){
+  var pw=this.value,res=g('ares');
+  if(!pw){res.style.display='none';return;}
+  res.style.display='';
+  var L=L10N[curLang],bits=entropy(pw),score=eScore(bits),col=SC[Math.min(score,4)];
+  var up=(pw.match(/[A-Z]/g)||[]).length,lo=(pw.match(/[a-z]/g)||[]).length;
+  var nu=(pw.match(/\d/g)||[]).length,sy=pw.length-up-lo-nu,uniq=new Set(pw).size;
+  g('agrid').innerHTML=
+    '<div class="astat"><div class="avl" style="color:'+col+'">'+L.sLabels[Math.min(score,4)]+'</div><div class="all">'+L.aStr+'</div></div>'+
+    '<div class="astat"><div class="avl">'+bits+'</div><div class="all">'+L.aEnt+'</div></div>'+
+    '<div class="astat"><div class="avl">'+pw.length+'</div><div class="all">'+L.aLen+'</div></div>'+
+    '<div class="astat"><div class="avl">'+uniq+'</div><div class="all">'+L.aUniq+'</div></div>'+
+    '<div class="astat" style="grid-column:1/-1"><div class="avl" style="font-size:.8rem;">'+crackTime(bits)+'</div><div class="all">'+L.aCrack+'</div></div>';
+  var bk=[{l:L.cbUp,c:up,col:'#93c5fd'},{l:L.cbLo,c:lo,col:'#6ee7b7'},{l:L.cbNu,c:nu,col:'#fde68a'},{l:L.cbSy,c:sy,col:'#fca5a5'}];
+  g('cbk').innerHTML=bk.map(function(b){
+    return '<div class="cbrow"><div class="cblbl">'+b.l+'</div>'+
+      '<div class="cbbg"><div class="cbb" style="width:'+(pw.length?b.c/pw.length*100:0)+'%;background:'+b.col+'"></div></div>'+
+      '<div class="cbcnt">'+b.c+'</div></div>';
+  }).join('');
+});
+
+/* ── VAULT ── */
+window.useCurPw=function(){g('vPw').value=curPw;};
+window.saveVault=function(){
+  var site=g('vSite').value.trim(),user=g('vUser').value.trim(),pw=g('vPw').value.trim();
+  if(!site||!pw){notify(T('nFill'),true);return;}
+  vault.push({site:site,user:user,pw:pw});
+  g('vSite').value='';g('vUser').value='';g('vPw').value='';
+  saveVaultLS(); renderVault(); notify(T('nSaved'));
+};
+function renderVault(){
+  var el=g('ventries');
+  if(!vault.length){
+    el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>'+T('emptyV')+'</span></div>';
+    return;
+  }
+  var ico=['🌐','📱','🏠','🛒','📧','🎮','💼','🔐'];
+  el.innerHTML=vault.map(function(v,i){
+    return '<div class="vitem">'+
+      '<div class="vico">'+ico[i%ico.length]+'</div>'+
+      '<div class="vinf">'+
+        '<div class="vsite">'+escHtml(v.site)+'</div>'+
+        '<div class="vuser">'+(v.user||'—')+'</div>'+
+        '<div class="vpw" id="vpw-'+i+'" onclick="toggleBlur('+i+')">'+escHtml(v.pw)+'</div>'+
+      '</div>'+
+      '<div class="vacts">'+
+        '<button class="vab" onclick="toggleBlur('+i+')" title="Show/Hide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M22 12c-2.667 4.667-6 7-10 7s-7.333-2.333-10-7c2.667-4.667 6-7 10-7s7.333 2.333 10 7z"/></svg></button>'+
+        '<button class="vab" onclick="cpV('+i+')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
+        '<button class="vab" onclick="delV('+i+')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function escHtml(s){
+  if(!s) return '';
+  return s.replace(/[&<>"']/g,function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];
+  });
+}
+window.toggleBlur=function(i){var el=g('vpw-'+i);if(el)el.classList.toggle('unblur');};
+window.cpV=function(i){navigator.clipboard.writeText(vault[i].pw).then(function(){notify(T('nCopied'));});};
+window.delV=function(i){vault.splice(i,1);saveVaultLS();renderVault();notify(T('nDel'));};
+window.clearVault=function(){if(confirm('Hapus semua entri vault?')){vault=[];saveVaultLS();renderVault();notify(T('nDel'));}};
+window.exportCSV=function(){
+  if(!vault.length){notify('No data',true);return;}
+  var csv='Website,Username,Password\n';
+  vault.forEach(function(v){csv+='"'+(v.site||'')+'","'+(v.user||'')+'","'+(v.pw||'')+'"\n';});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='muhaajir_vault.csv'; a.click(); URL.revokeObjectURL(a.href);
+  notify(T('nDL'));
+};
+
+/* ── TIPS ── */
+function renderTips(){
+  var tips=L10N[curLang].tips; if(!tips) return;
+  g('tiplist').innerHTML=tips.map(function(t){
+    return '<div class="tipitem"><div class="tipico">'+t.e+'</div>'+
+      '<div><div class="tiptit">'+t.t+'</div><div class="tipbod">'+t.b+'</div></div></div>';
+  }).join('');
+}
+
+/* ── TABS ── */
+window.stab=function(id){
+  var ids=['hist','ana','vault','tips'];
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('on',ids[i]===id);});
+  document.querySelectorAll('.tp').forEach(function(p){p.classList.toggle('on',p.id==='tp-'+id);});
+};
+
+/* ── ACTION BUTTONS ── */
+g('genBtn').addEventListener('click',function(){setPw(generate());});
+g('btnRef').addEventListener('click',function(){setPw(generate());});
+
+g('btnCopy').addEventListener('click',function(){
+  if(!curPw) return;
+  navigator.clipboard.writeText(curPw).then(function(){
+    notify(T('nCopied'));
+    var b=g('btnCopy'); b.style.transform='scale(1.3)'; setTimeout(function(){b.style.transform='';},300);
+  }).catch(function(){notify(T('nFail'),true);});
+});
+
+g('btnDL').addEventListener('click',function(){
+  if(!curPw) return;
+  var txt='Password: '+curPw+'\n\nGenerated: '+new Date().toLocaleString()+'\nStrength: '+g('slbl').textContent+' / '+g('ebits').textContent+' bits\n\nMuhaajir Vault';
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='muhaajir_vault.txt'; a.click(); notify(T('nDL'));
+});
+
+g('btnSh').addEventListener('click',function(){
+  if(!curPw) return;
+  if(navigator.share) navigator.share({title:'Muhaajir Vault',text:curPw});
+  else navigator.clipboard.writeText(curPw).then(function(){notify(T('nShared'));});
+});
+
+g('btnSV').addEventListener('click',function(){
+  if(!curPw) return;
+  g('vPw').value=curPw; stab('vault'); notify(T('nOpenV'));
+});
+
+/* ── INIT ── */
+loadStorage();
+applyLang();
+setPw(generate());
+
+})();
+</script>
+</body>
+</html>
