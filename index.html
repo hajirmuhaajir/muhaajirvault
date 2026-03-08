@@ -3,9 +3,17 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Muhaajir – Password Vault</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Muhaajir Vault — Secure Password & Data Manager</title>
+
+<!-- Logo di Head -->
 <link rel="icon" type="image/png" href="https://i.postimg.cc/Kvg50f5n/IMG-20250812-164118-putih.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/Kvg50f5n/IMG-20250812-164118-putih.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Link ke footer-essentials untuk styling tambahan (opsional) -->
+<link rel="stylesheet" href="https://hajirmuhaajir.github.io/footer-essentials/style.css">
+
 <style>
 :root{
   --midnight:#020617;
@@ -23,6 +31,8 @@
   --border-hover:rgba(59,130,246,0.35);
   --glow:0 0 30px rgba(59,130,246,0.18);
   --glow-strong:0 0 40px rgba(59,130,246,0.35);
+  --gold: #c9a84c;
+  --gold-dim: rgba(201,168,76,0.15);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -34,6 +44,8 @@ body{
   min-height:100vh;
   color:var(--text);
   overflow-x:hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── BACKGROUND LAYERS ── */
@@ -58,7 +70,7 @@ body::after{
 @keyframes gridDrift{to{background-position:0 44px;}}
 @keyframes bgPulse{from{opacity:.6}to{opacity:1}}
 
-.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:1.5rem 1rem 5rem;}
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:1.5rem 1rem 2rem;width:100%;flex:1;}
 
 /* ═══════════════════════════
    HEADER
@@ -76,14 +88,27 @@ header{
 
 .brand{display:flex;align-items:center;gap:.75rem;min-width:0;}
 
-.logo{
-  width:42px;height:42px;border-radius:13px;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
-  border:1px solid var(--blue-18);
-  display:flex;align-items:center;justify-content:center;
-  animation:logoPulse 4s ease-in-out infinite;
+.logo-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(59,130,246,.12), rgba(59,130,246,.04));
+  border: 1px solid var(--blue-18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: logoPulse 4s ease-in-out infinite;
+  overflow: hidden;
 }
-.logo svg{width:22px;height:22px;stroke:var(--blue);stroke-width:1.8;fill:none;}
+
+.logo-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
 @keyframes logoPulse{
   0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}
   50%{box-shadow:0 0 0 6px rgba(59,130,246,.08)}
@@ -135,6 +160,33 @@ h1{
 }
 .hnum{font-size:1rem;font-weight:700;color:var(--blue);font-family:'Space Mono',monospace;}
 .hlbl{font-size:.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+.footer {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Memastikan semua elemen di dalam footer rata tengah */
+  padding: 20px;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center; /* Menengahkan ikon sosmed secara horizontal */
+  gap: 15px;               /* Memberi jarak antar ikon */
+  margin-top: 15px;
+  width: 100%;             /* Memastikan container mengambil ruang penuh */
+}
+
+.social-link {
+  font-size: 1.2rem;
+  color: white;            /* Sesuaikan dengan tema putihmu */
+  transition: transform 0.3s ease;
+}
+
+.social-link:hover {
+  transform: translateY(-3px); /* Efek melayang sedikit saat di-hover */
+}
+
 
 /* ═══════════════════════════
    LANGUAGE MODAL
@@ -658,6 +710,179 @@ input[type=range]::-webkit-slider-thumb{
 .sec-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
 
 /* ═══════════════════════════
+   FOOTER (dari footer-essentials)
+═══════════════════════════ */
+.footer {
+  background: var(--midnight);
+  color: rgba(255,255,255,0.7);
+  padding: 40px 20px 30px;
+  text-align: center;
+  border-top: 1px solid rgba(59,130,246,0.2);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(59,130,246,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.footer-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: contain;
+  border: 1.5px solid rgba(59,130,246,0.4);
+  padding: 6px;
+  background: rgba(255,255,255,0.05);
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.footer-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.3rem;
+  color: #fff;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+}
+
+.footer-tagline {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 28px;
+  letter-spacing: 0.3px;
+  position: relative;
+  z-index: 1;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.footer-link {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 40px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all var(--transition, 0.3s);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.footer-link:hover {
+  background: rgba(59,130,246,0.15);
+  border-color: rgba(59,130,246,0.4);
+  color: var(--blue);
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.social-link {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.social-link:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--blue);
+  color: var(--blue);
+  transform: translateY(-3px);
+}
+
+.github-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 40px;
+  transition: all 0.3s;
+}
+
+.github-link:hover {
+  border-color: rgba(59,130,246,0.4);
+  color: var(--blue);
+  background: rgba(59,130,246,0.07);
+}
+
+.license-tag {
+  background: var(--blue);
+  color: var(--midnight);
+  padding: 2px 6px;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.footer-divider {
+  width: 60px;
+  height: 1px;
+  background: rgba(59,130,246,0.3);
+  margin: 0 auto 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.copyright {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══════════════════════════
    RESPONSIVE
 ═══════════════════════════ */
 @media(max-width:520px){
@@ -668,6 +893,14 @@ input[type=range]::-webkit-slider-thumb{
   .agrid{grid-template-columns:1fr;}
   .frow{grid-template-columns:1fr;}
   .title-row{gap:6px;}
+  .github-links {
+    flex-direction: column;
+    align-items: center;
+  }
+  .github-link {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* RTL support */
@@ -681,8 +914,8 @@ input[type=range]::-webkit-slider-thumb{
 <!-- ══════════ HEADER ══════════ -->
 <header>
   <div class="brand">
-    <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="logo-img">
+      <img src="https://i.postimg.cc/Kvg50f5n/IMG-20250812-164118-putih.png" alt="Muhaajir Logo">
     </div>
     <div class="brand-text">
       <div class="title-row">
@@ -904,10 +1137,33 @@ input[type=range]::-webkit-slider-thumb{
 
 </div><!-- /.wrap -->
 
+<!-- FOOTER dari footer-essentials -->
+<footer class="footer">
+  <img src="https://i.postimg.cc/Kvg50f5n/IMG-20250812-164118-putih.png" alt="Logo Muhaajir" class="footer-logo" loading="lazy" decoding="async">
+  <div class="footer-name">Muhaajir Vault</div>
+  <div class="footer-tagline">Muhaajir: The Future of Digital Privacy</div>
+
+  <div class="footer-links">
+    <a href="#privacy" class="footer-link"><i class="fas fa-shield-alt"></i> Privasi</a>
+    <a href="#terms" class="footer-link"><i class="fas fa-file-contract"></i> Syarat</a>
+</div> <div class="social-links">
+    <a href="https://www.youtube.com/@hajirstein" class="social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+    <a href="https://www.tiktok.com/@muhaajir_muhaajir" class="social-link" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+    <a href="https://www.instagram.com/muhaajirere" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="https://github.com/hajirmuhaajir" class="social-link" aria-label="GitHub"><i class="fab fa-github"></i></a>
+</div>
+
+  <div class="footer-divider"></div>
+  <div class="copyright">© 2026 Muhaajir. All rights reserved.</div>
+</footer>
+
 <div class="notif" id="notif">
   <div class="ndot" id="ndot"></div>
   <span id="ntxt">OK</span>
 </div>
+
+<!-- Font Awesome untuk ikon footer -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
 <script>
 (function(){
